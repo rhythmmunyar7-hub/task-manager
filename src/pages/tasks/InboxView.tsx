@@ -6,6 +6,7 @@ import { TopBar } from '@/components/tasks/TopBar';
 import { AddTaskInput } from '@/components/tasks/AddTaskInput';
 import { TaskSection } from '@/components/tasks/TaskSection';
 import { TaskDetailPanel } from '@/components/tasks/TaskDetailPanel';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 export default function InboxView() {
   const {
@@ -20,6 +21,9 @@ export default function InboxView() {
   } = useTaskContext();
 
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Keyboard shortcuts: Cmd+N focuses input
+  useKeyboardShortcuts({ inputRef });
 
   const inboxTasks = getInboxTasks();
 
@@ -36,7 +40,7 @@ export default function InboxView() {
       />
 
       <main className="flex-1 overflow-y-auto p-6">
-        <AddTaskInput onAdd={addTask} />
+        <AddTaskInput ref={inputRef} onAdd={addTask} />
 
         <TaskSection
           title="Inbox"

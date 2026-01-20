@@ -7,6 +7,7 @@ import { AddTaskInput } from '@/components/tasks/AddTaskInput';
 import { TaskSection } from '@/components/tasks/TaskSection';
 import { TaskDetailPanel } from '@/components/tasks/TaskDetailPanel';
 import { TaskFilter } from '@/types/task';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 export default function AllTasksView() {
   const {
@@ -26,6 +27,9 @@ export default function AllTasksView() {
 
   const [filter, setFilter] = useState<TaskFilter>('all');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcuts: Cmd+N focuses input
+  useKeyboardShortcuts({ inputRef });
 
   const todayTasks = getTodayTasks();
   const upcomingTasks = getUpcomingTasks();
@@ -56,7 +60,7 @@ export default function AllTasksView() {
       />
 
       <main className="flex-1 overflow-y-auto p-6">
-        <AddTaskInput onAdd={addTask} />
+        <AddTaskInput ref={inputRef} onAdd={addTask} />
 
         {showActive && (
           <>

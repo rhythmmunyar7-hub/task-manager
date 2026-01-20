@@ -79,6 +79,7 @@ interface TaskContextType {
   getInboxTasks: () => Task[];
   getCompletedTasks: () => Task[];
   getUpcomingTasks: () => Task[];
+  isRecentlyAdded: (id: string) => boolean;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -86,6 +87,7 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 export function TaskProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [recentlyAddedIds, setRecentlyAddedIds] = useState<Set<string>>(new Set());
 
   const addTask = useCallback((title: string) => {
     const newTask: Task = {
@@ -95,7 +97,12 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTasks((prev) => [newTask, ...prev]);
+    setRecentlyAddedIds((prev) => new Set(prev).add(newTask.id));
+    setTimeout(() => setRecentlyAddedIds((prev) => { const next = new Set(prev); next.delete(newTask.id); return next; }), 250);
+    setTimeout(() => document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' }), 50);
   }, []);
+
+  const isRecentlyAdded = useCallback((id: string) => recentlyAddedIds.has(id), [recentlyAddedIds]);
 
   const updateTask = useCallback((id: string, updates: Partial<Task>) => {
     setTasks((prev) =>
@@ -167,6 +174,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         getInboxTasks,
         getCompletedTasks,
         getUpcomingTasks,
+        isRecentlyAdded,
       }}
     >
       {children}
