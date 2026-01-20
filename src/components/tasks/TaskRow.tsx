@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { Task } from '@/types/task';
 import { cn } from '@/lib/utils';
+import { useTaskContext } from '@/context/TaskContext';
 
 interface TaskRowProps {
   task: Task;
@@ -46,6 +47,7 @@ function formatDueDate(dueDate: string): { text: string; isOverdue: boolean } {
 export function TaskRow({ task, onClick, onComplete }: TaskRowProps) {
   const [isCompleting, setIsCompleting] = useState(false);
   const [shouldExit, setShouldExit] = useState(false);
+  const { isRecentlyAdded } = useTaskContext();
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -59,15 +61,15 @@ export function TaskRow({ task, onClick, onComplete }: TaskRowProps) {
     // Start completion animation
     setIsCompleting(true);
     
-    // After animation, trigger exit
+    // After 400ms total wait, trigger exit animation
     setTimeout(() => {
       setShouldExit(true);
-    }, 300);
+    }, 400);
 
-    // Complete the task after exit animation
+    // Complete the task after exit animation (400 + 200 = 600ms)
     setTimeout(() => {
       onComplete(task.id);
-    }, 500);
+    }, 600);
   };
 
   // Reset state when task changes
@@ -81,25 +83,38 @@ export function TaskRow({ task, onClick, onComplete }: TaskRowProps) {
     : null;
 
   const dueDateInfo = task.dueDate ? formatDueDate(task.dueDate) : null;
+  const isNewTask = isRecentlyAdded(task.id);
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        'group flex h-12 cursor-pointer items-center gap-4 rounded-lg px-4 transition-all duration-100',
-        'hover:bg-surface-hover',
+        // Base styles - mobile first (56px), desktop (48px)
+        'group flex h-14 md:h-12 cursor-pointer items-center gap-4 rounded-lg px-4',
+        // Hover state - specific transition
+        'transition-colors duration-100 hover:bg-surface-hover',
+        // Completed state
         task.completed && 'opacity-50',
-        shouldExit && 'task-row-exit'
+        // Exit animation
+        shouldExit && 'task-row-exit',
+        // New task fade-in animation
+        isNewTask && 'task-row-enter'
       )}
     >
       {/* Checkbox */}
       <button
         onClick={handleCheckboxClick}
+        aria-label={task.completed || isCompleting ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
         className={cn(
-          'relative flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-all duration-200',
+          // Base styles with minimum touch target
+          'relative flex h-6 w-6 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 shrink-0 items-center justify-center rounded-md border-2',
+          // Specific transition (not transition-all)
+          'transition-[background-color,border-color] duration-200',
+          // Focus ring
+          'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background',
           task.completed || isCompleting
             ? 'border-success bg-success'
-            : 'border-primary bg-transparent hover:bg-primary/10'
+            : 'border-primary bg-transparent hover:bg-primary/10 hover:border-[3px]'
         )}
       >
         {(task.completed || isCompleting) && (
@@ -110,7 +125,9 @@ export function TaskRow({ task, onClick, onComplete }: TaskRowProps) {
       {/* Task Title */}
       <span
         className={cn(
-          'flex-1 truncate text-base font-medium transition-all duration-300',
+          'flex-1 truncate text-base font-medium',
+          // Specific transition for color and text-decoration
+          'transition-[color,text-decoration] duration-300',
           task.completed || isCompleting
             ? 'text-muted-foreground line-through'
             : 'text-foreground'
