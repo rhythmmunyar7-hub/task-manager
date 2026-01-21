@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Capella Pro Design System - $100M SaaS Quality */
+/* Capella Pro Design System - Clean, Calm, Professional */
 
 @layer base {
   :root {
@@ -24,7 +24,7 @@
     
     /* === SEMANTIC COLORS === */
     --color-primary: 217 91% 60%;    /* #3B82F6 - Blue */
-    --color-success: 160 84% 39%;    /* #10B981 - Green */
+    --color-success: 151 100% 50%;   /* #00FF90 - Green (Primary Action) */
     --color-warning: 38 92% 50%;     /* #F59E0B - Amber */
     --color-danger: 0 84% 60%;       /* #EF4444 - Red */
     --color-purple: 258 90% 66%;     /* #8B5CF6 */
@@ -56,10 +56,10 @@
     --destructive-foreground: 0 0% 100%;
 
     --success: var(--color-success);
-    --success-foreground: 0 0% 100%;
+    --success-foreground: 0 0% 0%;
 
     --warning: var(--color-warning);
-    --warning-foreground: 0 0% 100%;
+    --warning-foreground: 0 0% 0%;
 
     --border: var(--border-default);
     --input: var(--border-default);
@@ -73,7 +73,7 @@
     --surface-hover: var(--bg-subtle);
     --surface-border: var(--border-default);
 
-    /* Sidebar */
+    /* Sidebar (kept for compatibility) */
     --sidebar-background: var(--bg-sidebar);
     --sidebar-foreground: var(--text-secondary);
     --sidebar-primary: var(--color-primary);
@@ -103,17 +103,17 @@
 @layer utilities {
   /* Task row animations */
   .task-row-enter {
-    animation: task-row-enter 0.25s ease-out;
+    animation: task-row-enter 0.2s ease-out;
   }
 
   .task-row-exit {
-    animation: task-row-exit 0.25s ease-out forwards;
+    animation: task-row-exit 0.2s ease-out forwards;
   }
 
   @keyframes task-row-enter {
     from {
       opacity: 0;
-      transform: translateY(-8px);
+      transform: translateY(-4px);
     }
     to {
       opacity: 1;
@@ -129,20 +129,34 @@
     }
     to {
       opacity: 0;
-      transform: translateX(20px);
+      transform: translateX(12px);
       height: 0;
       padding: 0;
       margin: 0;
     }
   }
 
+  /* Checkbox animation */
+  .animate-check-fill {
+    animation: check-fill 0.15s ease-out;
+  }
+
+  @keyframes check-fill {
+    from {
+      transform: scale(0);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
   /* Panel animations */
   .panel-slide-in {
-    animation: panel-slide-in 0.25s ease-in-out;
+    animation: panel-slide-in 0.2s ease-in-out;
   }
 
   .panel-slide-out {
-    animation: panel-slide-out 0.25s ease-in-out forwards;
+    animation: panel-slide-out 0.2s ease-in-out forwards;
   }
 
   @keyframes panel-slide-in {
@@ -165,11 +179,11 @@
 
   /* Section collapse */
   .section-collapse {
-    animation: section-collapse 0.2s ease forwards;
+    animation: section-collapse 0.15s ease forwards;
   }
 
   .section-expand {
-    animation: section-expand 0.2s ease forwards;
+    animation: section-expand 0.15s ease forwards;
   }
 
   @keyframes section-collapse {
