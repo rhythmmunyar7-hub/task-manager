@@ -14,6 +14,32 @@ export default {
     },
     extend: {
       colors: {
+        // Capella Pro color system
+        bg: {
+          sidebar: "hsl(var(--bg-sidebar))",
+          main: "hsl(var(--bg-main))",
+          elevated: "hsl(var(--bg-elevated))",
+          subtle: "hsl(var(--bg-subtle))",
+          input: "hsl(var(--bg-input))",
+        },
+        "capella-border": {
+          DEFAULT: "hsl(var(--border-default))",
+          subtle: "hsl(var(--border-subtle))",
+        },
+        text: {
+          primary: "hsl(var(--text-primary))",
+          secondary: "hsl(var(--text-secondary))",
+          muted: "hsl(var(--text-muted))",
+        },
+        capella: {
+          primary: "hsl(var(--color-primary))",
+          success: "hsl(var(--color-success))",
+          warning: "hsl(var(--color-warning))",
+          danger: "hsl(var(--color-danger))",
+          purple: "hsl(var(--color-purple))",
+          teal: "hsl(var(--color-teal))",
+        },
+        // Shadcn mappings
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -35,6 +61,10 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -51,6 +81,7 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Legacy surface tokens
         surface: {
           base: "hsl(var(--surface-base))",
           elevated: "hsl(var(--surface-elevated))",
@@ -92,6 +123,17 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "check-fill": "check-fill 0.2s ease-out forwards",
+      },
+      spacing: {
+        '18': '4.5rem',
+        '68': '17rem',
+      },
+      width: {
+        'sidebar': '240px',
+        'panel': '400px',
+      },
+      minWidth: {
+        'main': '600px',
       },
     },
   },

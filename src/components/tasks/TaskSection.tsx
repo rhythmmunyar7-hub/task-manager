@@ -15,6 +15,7 @@ interface TaskSectionProps {
   defaultCollapsed?: boolean;
   showCount?: boolean;
   emptyMessage?: string;
+  selectedTaskId?: string | null;
 }
 
 export function TaskSection({
@@ -26,6 +27,7 @@ export function TaskSection({
   defaultCollapsed = false,
   showCount = false,
   emptyMessage,
+  selectedTaskId,
 }: TaskSectionProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
@@ -34,37 +36,45 @@ export function TaskSection({
   }
 
   return (
-    <section className="mb-6">
+    <section className="mb-8">
+      {/* Section Header - 32px height */}
       <button
         onClick={() => collapsible && setIsCollapsed(!isCollapsed)}
         disabled={!collapsible}
         className={cn(
-          'mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground',
-          collapsible && 'cursor-pointer hover:text-foreground transition-colors'
+          'mb-4 flex h-8 items-center gap-2',
+          'text-sm font-semibold text-text-muted',
+          collapsible && 'cursor-pointer hover:text-text-secondary transition-colors duration-200'
         )}
       >
         {collapsible && (
-          isCollapsed ? (
-            <ChevronRight className="h-3 w-3" />
-          ) : (
-            <ChevronDown className="h-3 w-3" />
-          )
+          <span className="transition-transform duration-200">
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </span>
         )}
-        <span>{title}</span>
-        {showCount && tasks.length > 0 && (
-          <span className="ml-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium">
-            {tasks.length}
+        <span className="uppercase tracking-wide">{title}</span>
+        {showCount && (
+          <span className="text-xs font-normal">
+            ({tasks.length})
           </span>
         )}
       </button>
 
+      {/* Task List with 16px spacing */}
       {!isCollapsed && (
-        <TaskList
-          tasks={tasks}
-          onTaskClick={onTaskClick}
-          onTaskComplete={onTaskComplete}
-          emptyMessage={emptyMessage}
-        />
+        <div className="space-y-4">
+          <TaskList
+            tasks={tasks}
+            onTaskClick={onTaskClick}
+            onTaskComplete={onTaskComplete}
+            emptyMessage={emptyMessage}
+            selectedTaskId={selectedTaskId}
+          />
+        </div>
       )}
     </section>
   );

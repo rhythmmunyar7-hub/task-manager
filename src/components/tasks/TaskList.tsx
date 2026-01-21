@@ -8,6 +8,7 @@ interface TaskListProps {
   onTaskClick: (task: Task) => void;
   onTaskComplete: (id: string) => void;
   emptyMessage?: string;
+  selectedTaskId?: string | null;
 }
 
 export function TaskList({
@@ -15,23 +16,25 @@ export function TaskList({
   onTaskClick,
   onTaskComplete,
   emptyMessage = 'No tasks',
+  selectedTaskId,
 }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
+      <div className="py-8 text-center text-text-muted text-sm">
         {emptyMessage}
       </div>
     );
   }
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-4">
       {tasks.map((task) => (
         <TaskRow
           key={task.id}
           task={task}
           onClick={() => onTaskClick(task)}
           onComplete={onTaskComplete}
+          isSelected={selectedTaskId === task.id}
         />
       ))}
     </div>

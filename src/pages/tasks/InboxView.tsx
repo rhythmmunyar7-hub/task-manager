@@ -5,59 +5,44 @@ import { useTaskContext } from '@/context/TaskContext';
 import { TopBar } from '@/components/tasks/TopBar';
 import { AddTaskInput } from '@/components/tasks/AddTaskInput';
 import { TaskSection } from '@/components/tasks/TaskSection';
-import { TaskDetailPanel } from '@/components/tasks/TaskDetailPanel';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { EmptyState } from '@/components/tasks/EmptyState';
 
 export default function InboxView() {
   const {
-    projects,
     selectedTask,
-    addTask,
-    updateTask,
-    deleteTask,
     completeTask,
     selectTask,
+    openAddTask,
     getInboxTasks,
   } = useTaskContext();
 
   const inputRef = useRef<HTMLInputElement>(null);
-  
-  // Keyboard shortcuts: Cmd+N focuses input
-  useKeyboardShortcuts({ inputRef });
-
   const inboxTasks = getInboxTasks();
-
-  const handleAddClick = () => {
-    inputRef.current?.focus();
-  };
 
   return (
     <div className="flex h-full flex-col">
       <TopBar
         title="Inbox"
         count={inboxTasks.length}
-        onAddClick={handleAddClick}
+        onAddClick={openAddTask}
       />
 
       <main className="flex-1 overflow-y-auto p-6">
-        <AddTaskInput ref={inputRef} onAdd={addTask} />
+        <AddTaskInput ref={inputRef} />
 
-        <TaskSection
-          title="Inbox"
-          tasks={inboxTasks}
-          onTaskClick={selectTask}
-          onTaskComplete={completeTask}
-          emptyMessage="Inbox is empty"
-        />
+        {inboxTasks.length === 0 ? (
+          <EmptyState type="inbox" />
+        ) : (
+          <TaskSection
+            title="Inbox"
+            tasks={inboxTasks}
+            onTaskClick={selectTask}
+            onTaskComplete={completeTask}
+            emptyMessage="Inbox is empty"
+            selectedTaskId={selectedTask?.id}
+          />
+        )}
       </main>
-
-      <TaskDetailPanel
-        task={selectedTask}
-        projects={projects}
-        onClose={() => selectTask(null)}
-        onUpdate={updateTask}
-        onDelete={deleteTask}
-      />
     </div>
   );
 }

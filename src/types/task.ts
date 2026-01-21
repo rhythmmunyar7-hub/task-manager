@@ -4,10 +4,13 @@ export interface Project {
   color: 'blue' | 'purple' | 'green' | 'orange' | 'pink' | 'yellow';
 }
 
+export type TaskPriority = 'p1' | 'p2' | 'p3' | 'none';
+
 export interface Task {
   id: string;
   title: string;
   completed: boolean;
+  priority: TaskPriority;
   project?: Project;
   dueDate?: string; // ISO date string or 'today', 'overdue'
   notes?: string;
