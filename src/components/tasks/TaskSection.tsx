@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { Task } from '@/types/task';
-import { TaskList } from './TaskList';
+import { TaskRow } from './TaskRow';
 import { cn } from '@/lib/utils';
 
 interface TaskSectionProps {
@@ -15,7 +15,7 @@ interface TaskSectionProps {
   defaultCollapsed?: boolean;
   showCount?: boolean;
   emptyMessage?: string;
-  selectedTaskId?: string | null;
+  selectedTaskId?: string;
 }
 
 export function TaskSection({
@@ -31,49 +31,65 @@ export function TaskSection({
 }: TaskSectionProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-  if (!collapsible && tasks.length === 0) {
-    return null;
-  }
+  const handleHeaderClick = () => {
+    if (collapsible) {
+      setIsCollapsed(!isCollapsed);
+    }
+  };
 
   return (
-    <section className="mb-8">
-      {/* Section Header - 32px height */}
+    <section className="mb-6">
+      {/* Section Header - Uppercase, muted, clickable */}
       <button
-        onClick={() => collapsible && setIsCollapsed(!isCollapsed)}
+        onClick={handleHeaderClick}
         disabled={!collapsible}
         className={cn(
-          'mb-4 flex h-8 items-center gap-2',
-          'text-sm font-semibold text-text-muted',
-          collapsible && 'cursor-pointer hover:text-text-secondary transition-colors duration-200'
+          'flex w-full items-center gap-2 py-3',
+          collapsible && 'cursor-pointer hover:text-text-secondary',
+          'text-left'
         )}
       >
+        {/* Collapse Chevron */}
         {collapsible && (
-          <span className="transition-transform duration-200">
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </span>
+          <ChevronDown 
+            className={cn(
+              'h-3.5 w-3.5 text-text-muted transition-transform duration-150',
+              isCollapsed && '-rotate-90'
+            )} 
+          />
         )}
-        <span className="uppercase tracking-wide">{title}</span>
+
+        {/* Title - Small uppercase */}
+        <span className="text-xs font-medium uppercase tracking-wider text-text-muted">
+          {title}
+        </span>
+
+        {/* Count */}
         {showCount && (
-          <span className="text-xs font-normal">
+          <span className="text-xs text-text-muted">
             ({tasks.length})
           </span>
         )}
       </button>
 
-      {/* Task List with 16px spacing */}
+      {/* Task List */}
       {!isCollapsed && (
-        <div className="space-y-4">
-          <TaskList
-            tasks={tasks}
-            onTaskClick={onTaskClick}
-            onTaskComplete={onTaskComplete}
-            emptyMessage={emptyMessage}
-            selectedTaskId={selectedTaskId}
-          />
+        <div className="space-y-1">
+          {tasks.length > 0 ? (
+            tasks.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                onClick={() => onTaskClick(task)}
+                onComplete={onTaskComplete}
+                isSelected={selectedTaskId === task.id}
+              />
+            ))
+          ) : emptyMessage ? (
+            <p className="py-4 text-center text-sm text-text-muted">
+              {emptyMessage}
+            </p>
+          ) : null}
         </div>
       )}
     </section>

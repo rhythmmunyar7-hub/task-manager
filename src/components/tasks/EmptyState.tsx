@@ -1,70 +1,64 @@
 'use client';
 
-import { Calendar, Inbox, FolderOpen, ListTodo, LucideIcon } from 'lucide-react';
+import { Calendar, Inbox, List, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
-  type: 'today' | 'inbox' | 'project' | 'all';
+  type: 'today' | 'inbox' | 'all' | 'project';
   onAddTask?: () => void;
 }
 
-interface EmptyStateConfig {
-  icon: LucideIcon;
-  message: string;
-  showButton: boolean;
-}
-
-const emptyStateConfigs: Record<string, EmptyStateConfig> = {
+const emptyStateConfig = {
   today: {
     icon: Calendar,
-    message: 'No tasks scheduled for today',
-    showButton: true,
+    message: "You're clear for today.",
+    showAction: true,
   },
   inbox: {
     icon: Inbox,
-    message: 'Your inbox is clear',
-    showButton: false,
-  },
-  project: {
-    icon: FolderOpen,
-    message: 'No tasks in this project yet',
-    showButton: true,
+    message: "Inbox is empty.",
+    showAction: false,
   },
   all: {
-    icon: ListTodo,
-    message: 'No tasks created yet',
-    showButton: true,
+    icon: List,
+    message: "No tasks yet.",
+    showAction: true,
+  },
+  project: {
+    icon: List,
+    message: "No tasks in this project yet.",
+    showAction: true,
   },
 };
 
 export function EmptyState({ type, onAddTask }: EmptyStateProps) {
-  const config = emptyStateConfigs[type];
+  const config = emptyStateConfig[type];
   const Icon = config.icon;
 
   return (
-    <div className="flex h-[400px] flex-col items-center justify-center text-center">
+    <div className="flex flex-col items-center justify-center py-24 text-center">
       {/* Icon */}
       <div className="mb-4 text-capella-border-subtle">
-        <Icon className="h-16 w-16" strokeWidth={1} />
+        <Icon className="h-12 w-12" strokeWidth={1} />
       </div>
 
       {/* Message */}
-      <p className="mb-6 text-[15px] text-text-muted">
+      <p className="text-sm text-text-muted mb-6">
         {config.message}
       </p>
 
-      {/* Action Button */}
-      {config.showButton && onAddTask && (
+      {/* Action Button - Green primary */}
+      {config.showAction && onAddTask && (
         <button
           onClick={onAddTask}
           className={cn(
-            'flex h-10 items-center gap-2 rounded-md px-4',
-            'bg-bg-elevated border border-capella-border-subtle',
-            'text-text-primary text-sm font-medium',
-            'transition-colors duration-200 hover:bg-bg-subtle'
+            'flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium',
+            'bg-capella-success text-black',
+            'transition-colors duration-150 hover:bg-capella-success/90'
           )}
         >
-          + Add Task
+          <Plus className="h-4 w-4" strokeWidth={2.5} />
+          Add Task
         </button>
       )}
     </div>
