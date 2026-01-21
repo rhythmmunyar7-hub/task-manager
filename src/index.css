@@ -2,85 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Capella Pro Design System - Dark Premium Theme */
+/* Capella Pro Design System - $100M SaaS Quality */
 
 @layer base {
   :root {
-    /* Capella Pro uses dark mode only */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 100%;
+    /* === BACKGROUNDS (HSL format for Tailwind) === */
+    --bg-sidebar: 0 0% 6%;           /* #0F0F0F */
+    --bg-main: 0 0% 7%;              /* #121212 */
+    --bg-elevated: 0 0% 10%;         /* #1A1A1A */
+    --bg-subtle: 0 0% 9%;            /* #161616 */
+    --bg-input: 0 0% 10%;            /* #1A1A1A */
+    
+    /* === BORDERS === */
+    --border-default: 0 0% 12%;      /* #1F1F1F */
+    --border-subtle: 0 0% 16%;       /* #2A2A2A */
+    
+    /* === TEXT === */
+    --text-primary: 0 0% 100%;       /* #FFFFFF */
+    --text-secondary: 0 0% 63%;      /* #A0A0A0 */
+    --text-muted: 0 0% 40%;          /* #666666 */
+    
+    /* === SEMANTIC COLORS === */
+    --color-primary: 217 91% 60%;    /* #3B82F6 - Blue */
+    --color-success: 160 84% 39%;    /* #10B981 - Green */
+    --color-warning: 38 92% 50%;     /* #F59E0B - Amber */
+    --color-danger: 0 84% 60%;       /* #EF4444 - Red */
+    --color-purple: 258 90% 66%;     /* #8B5CF6 */
+    --color-teal: 168 80% 40%;       /* #14B8A6 */
 
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 100%;
+    /* === SHADCN MAPPINGS === */
+    --background: var(--bg-main);
+    --foreground: var(--text-primary);
 
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 100%;
+    --card: var(--bg-elevated);
+    --card-foreground: var(--text-primary);
 
-    --primary: 217 91% 60%;
+    --popover: var(--bg-elevated);
+    --popover-foreground: var(--text-primary);
+
+    --primary: var(--color-primary);
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary-foreground: var(--text-primary);
 
     --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 45%;
+    --muted-foreground: var(--text-muted);
 
-    --accent: 0 0% 12%;
-    --accent-foreground: 0 0% 100%;
+    --accent: var(--bg-elevated);
+    --accent-foreground: var(--text-primary);
 
-    --destructive: 0 72% 51%;
+    --destructive: var(--color-danger);
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 76% 36%;
+    --success: var(--color-success);
     --success-foreground: 0 0% 100%;
 
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
-    --ring: 217 91% 60%;
+    --warning: var(--color-warning);
+    --warning-foreground: 0 0% 100%;
+
+    --border: var(--border-default);
+    --input: var(--border-default);
+    --ring: var(--color-primary);
 
     --radius: 0.5rem;
 
-    /* Capella Surface Colors */
-    --surface-base: 0 0% 4%;
-    --surface-elevated: 0 0% 7%;
-    --surface-hover: 0 0% 9%;
-    --surface-border: 0 0% 12%;
+    /* Legacy surface tokens (backwards compat) */
+    --surface-base: var(--bg-main);
+    --surface-elevated: var(--bg-elevated);
+    --surface-hover: var(--bg-subtle);
+    --surface-border: var(--border-default);
 
-    /* Text hierarchy */
-    --text-primary: 0 0% 100%;
-    --text-secondary: 0 0% 60%;
-    --text-tertiary: 0 0% 40%;
-
-    --sidebar-background: 0 0% 4%;
-    --sidebar-foreground: 0 0% 60%;
-    --sidebar-primary: 217 91% 60%;
+    /* Sidebar */
+    --sidebar-background: var(--bg-sidebar);
+    --sidebar-foreground: var(--text-secondary);
+    --sidebar-primary: var(--color-primary);
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 9%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: var(--bg-elevated);
+    --sidebar-accent-foreground: var(--text-primary);
+    --sidebar-border: var(--border-default);
+    --sidebar-ring: var(--color-primary);
   }
 
+  /* Dark mode is the same (Capella is dark-only) */
   .dark {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 12%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
-    --ring: 217 91% 60%;
+    /* Same as :root */
   }
 }
 
@@ -95,12 +101,13 @@
 }
 
 @layer utilities {
+  /* Task row animations */
   .task-row-enter {
-    animation: task-row-enter 0.2s ease-out;
+    animation: task-row-enter 0.25s ease-out;
   }
 
   .task-row-exit {
-    animation: task-row-exit 0.3s ease-out forwards;
+    animation: task-row-exit 0.25s ease-out forwards;
   }
 
   @keyframes task-row-enter {
@@ -129,8 +136,13 @@
     }
   }
 
+  /* Panel animations */
   .panel-slide-in {
-    animation: panel-slide-in 0.3s ease-out;
+    animation: panel-slide-in 0.25s ease-in-out;
+  }
+
+  .panel-slide-out {
+    animation: panel-slide-out 0.25s ease-in-out forwards;
   }
 
   @keyframes panel-slide-in {
@@ -139,6 +151,46 @@
     }
     to {
       transform: translateX(0);
+    }
+  }
+
+  @keyframes panel-slide-out {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Section collapse */
+  .section-collapse {
+    animation: section-collapse 0.2s ease forwards;
+  }
+
+  .section-expand {
+    animation: section-expand 0.2s ease forwards;
+  }
+
+  @keyframes section-collapse {
+    from {
+      opacity: 1;
+      max-height: 1000px;
+    }
+    to {
+      opacity: 0;
+      max-height: 0;
+    }
+  }
+
+  @keyframes section-expand {
+    from {
+      opacity: 0;
+      max-height: 0;
+    }
+    to {
+      opacity: 1;
+      max-height: 1000px;
     }
   }
 }

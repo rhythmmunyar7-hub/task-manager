@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Trash2 } from 'lucide-react';
-import FocusTrap from 'focus-trap-react';
-import { Task, Project, Subtask } from '@/types/task';
+import { Task, Project, Subtask, TaskPriority } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { SubtasksList } from './SubtasksList';
 
@@ -30,13 +29,12 @@ export function TaskDetailPanel({
   const titleRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Animated close handler
   const handleClose = useCallback(() => {
     setIsClosing(true);
     setTimeout(() => {
       setIsClosing(false);
       onClose();
-    }, 300);
+    }, 250);
   }, [onClose]);
 
   useEffect(() => {
@@ -46,19 +44,11 @@ export function TaskDetailPanel({
       setSubtasks(task.subtasks || []);
       setShowDeleteConfirm(false);
       setIsClosing(false);
-      // Focus title on open
       setTimeout(() => titleRef.current?.focus(), 100);
     }
   }, [task]);
 
-  // Handle click outside and escape
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        handleClose();
-      }
-    };
-
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         handleClose();
@@ -66,12 +56,10 @@ export function TaskDetailPanel({
     };
 
     if (task) {
-      document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscape);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
   }, [task, handleClose]);
@@ -92,6 +80,11 @@ export function TaskDetailPanel({
     if (!task) return;
     const project = projectId === 'none' ? undefined : projects.find((p) => p.id === projectId);
     onUpdate(task.id, { project });
+  };
+
+  const handlePriorityChange = (priority: TaskPriority) => {
+    if (!task) return;
+    onUpdate(task.id, { priority });
   };
 
   const handleDueDateChange = (value: string) => {
@@ -134,81 +127,85 @@ export function TaskDetailPanel({
 
   if (!task) return null;
 
+  // Mobile: Bottom sheet, Desktop: Inline panel (no overlay needed for desktop push layout)
   return (
-    <FocusTrap active={!!task && !isClosing}>
-      <div>
-        {/* Overlay */}
-        <div 
-          className={cn(
-            'fixed inset-0 z-40 bg-black/20 transition-opacity duration-300',
-            isClosing ? 'opacity-0' : 'opacity-100'
-          )} 
-        />
+    <>
+      {/* Mobile Overlay */}
+      <div 
+        className={cn(
+          'fixed inset-0 z-40 bg-black/50 transition-opacity duration-250 md:hidden',
+          isClosing ? 'opacity-0' : 'opacity-100'
+        )}
+        onClick={handleClose}
+      />
 
-        {/* Panel */}
-        <div
-          ref={panelRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="task-detail-title"
-          className={cn(
-            // Base styles
-            'fixed z-50 flex flex-col border-surface-border bg-card transition-transform duration-300 ease-out',
-            // Premium shadow
-            'shadow-[0_0_60px_rgba(0,0,0,0.5)]',
-            // Desktop: right slide-in panel
-            'md:right-0 md:top-0 md:h-full md:w-96 md:border-l md:rounded-none',
-            // Mobile: bottom sheet
-            'inset-x-0 bottom-0 h-[85vh] rounded-t-2xl border-t md:inset-auto',
-            // Animation states
-            isClosing
-              ? 'translate-y-full md:translate-y-0 md:translate-x-full'
-              : 'translate-y-0 md:translate-x-0'
-          )}
-        >
-          {/* Mobile drag handle */}
-          <div className="flex justify-center py-3 md:hidden">
-            <div className="h-1 w-12 rounded-full bg-muted-foreground/30" />
-          </div>
+      {/* Panel Content */}
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-detail-title"
+        className={cn(
+          // Mobile: Bottom sheet
+          'fixed inset-x-0 bottom-0 z-50 flex flex-col bg-bg-main md:relative md:inset-auto md:z-auto',
+          'h-[85vh] rounded-t-2xl border-t border-capella-border md:h-full md:rounded-none md:border-t-0',
+          // Animation
+          'transition-transform duration-250 ease-in-out',
+          isClosing 
+            ? 'translate-y-full md:translate-y-0' 
+            : 'translate-y-0'
+        )}
+      >
+        {/* Mobile drag handle */}
+        <div className="flex justify-center py-3 md:hidden">
+          <div className="h-1 w-12 rounded-full bg-text-muted/30" />
+        </div>
 
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-surface-border px-6 py-4">
-            <span id="task-detail-title" className="text-sm text-muted-foreground">
-              Task Details
-            </span>
-            <button
-              onClick={handleClose}
-              aria-label="Close task details"
-              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus:outline-none focus:ring-2 focus:ring-muted-foreground focus:ring-offset-2 focus:ring-offset-card"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+        {/* Header - 60px */}
+        <div className="flex h-[60px] items-center justify-between border-b border-capella-border px-6">
+          <span id="task-detail-title" className="text-sm text-text-secondary">
+            Task Details
+          </span>
+          <button
+            onClick={handleClose}
+            aria-label="Close task details"
+            className="rounded-md p-1.5 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {/* Title */}
-            <input
-              ref={titleRef}
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={handleTitleBlur}
-              aria-label="Task title"
-              className="mb-6 w-full bg-transparent text-xl font-semibold text-foreground placeholder:text-text-tertiary focus:outline-none"
-              placeholder="Task title..."
-            />
+        {/* Content (scrollable) */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Editable Title */}
+          <input
+            ref={titleRef}
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={handleTitleBlur}
+            aria-label="Task title"
+            className="mb-6 w-full bg-transparent text-xl font-semibold text-text-primary placeholder:text-text-muted focus:outline-none"
+            placeholder="Task title..."
+          />
 
+          {/* Metadata Grid */}
+          <div className="space-y-5 mb-6">
             {/* Project */}
-            <div className="mb-6">
-              <label htmlFor="project-select" className="mb-2 block text-xs text-muted-foreground">
+            <div>
+              <label htmlFor="project-select" className="mb-2 block text-[13px] text-text-muted">
                 Project
               </label>
               <select
                 id="project-select"
                 value={task.project?.id || 'none'}
                 onChange={(e) => handleProjectChange(e.target.value)}
-                className="w-full rounded-md border border-surface-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-card"
+                className={cn(
+                  'w-full h-10 rounded-md px-3 text-[15px]',
+                  'bg-bg-input border border-capella-border-subtle',
+                  'text-text-primary',
+                  'focus:border-capella-primary focus:outline-none focus:ring-2 focus:ring-capella-primary/20'
+                )}
               >
                 <option value="none">No project</option>
                 {projects.map((project) => (
@@ -220,8 +217,8 @@ export function TaskDetailPanel({
             </div>
 
             {/* Due Date */}
-            <div className="mb-6">
-              <label htmlFor="due-date" className="mb-2 block text-xs text-muted-foreground">
+            <div>
+              <label htmlFor="due-date" className="mb-2 block text-[13px] text-text-muted">
                 Due Date
               </label>
               <input
@@ -233,17 +230,22 @@ export function TaskDetailPanel({
                     : ''
                 }
                 onChange={(e) => handleDueDateChange(e.target.value)}
-                className="mb-2 w-full rounded-md border border-surface-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-card"
+                className={cn(
+                  'w-full h-10 rounded-md px-3 text-[15px]',
+                  'bg-bg-input border border-capella-border-subtle',
+                  'text-text-primary',
+                  'focus:border-capella-primary focus:outline-none focus:ring-2 focus:ring-capella-primary/20',
+                  'mb-2'
+                )}
               />
               <div className="flex gap-2">
                 <button
                   onClick={() => handleQuickDate('today')}
                   className={cn(
-                    'rounded-md px-3 py-1.5 text-xs transition-colors',
-                    'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-card',
+                    'h-8 rounded-md px-3 text-xs font-medium transition-colors',
                     task.dueDate === 'today'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-muted-foreground hover:text-foreground'
+                      ? 'bg-capella-primary text-white'
+                      : 'bg-bg-elevated text-text-secondary hover:bg-bg-subtle'
                   )}
                 >
                   Today
@@ -254,7 +256,7 @@ export function TaskDetailPanel({
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     handleDueDateChange(tomorrow.toISOString().split('T')[0]);
                   }}
-                  className="rounded-md bg-secondary px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-card"
+                  className="h-8 rounded-md px-3 text-xs font-medium bg-bg-elevated text-text-secondary hover:bg-bg-subtle transition-colors"
                 >
                   Tomorrow
                 </button>
@@ -264,68 +266,100 @@ export function TaskDetailPanel({
                     nextWeek.setDate(nextWeek.getDate() + 7);
                     handleDueDateChange(nextWeek.toISOString().split('T')[0]);
                   }}
-                  className="rounded-md bg-secondary px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-card"
+                  className="h-8 rounded-md px-3 text-xs font-medium bg-bg-elevated text-text-secondary hover:bg-bg-subtle transition-colors"
                 >
                   Next Week
                 </button>
               </div>
             </div>
 
-            {/* Notes */}
-            <div className="mb-6">
-              <label htmlFor="notes" className="mb-2 block text-xs text-muted-foreground">
-                Notes
+            {/* Priority */}
+            <div>
+              <label className="mb-2 block text-[13px] text-text-muted">
+                Priority
               </label>
-              <textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                onBlur={handleNotesBlur}
-                placeholder="Add notes..."
-                className="min-h-[120px] w-full resize-none rounded-md border border-surface-border bg-secondary px-3 py-3 text-sm text-foreground placeholder:text-text-tertiary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-card"
-              />
+              <div className="flex gap-2">
+                {(['p1', 'p2', 'p3', 'none'] as TaskPriority[]).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => handlePriorityChange(p)}
+                    className={cn(
+                      'h-9 flex-1 rounded-md text-sm font-medium transition-colors',
+                      task.priority === p
+                        ? p === 'p1'
+                          ? 'bg-capella-warning text-black'
+                          : p === 'p2'
+                          ? 'bg-capella-primary text-white'
+                          : 'bg-bg-subtle text-text-primary border border-capella-border'
+                        : 'bg-bg-elevated text-text-secondary hover:bg-bg-subtle'
+                    )}
+                  >
+                    {p === 'none' ? 'None' : p.toUpperCase()}
+                  </button>
+                ))}
+              </div>
             </div>
+          </div>
 
-            {/* Subtasks */}
-            <SubtasksList
-              subtasks={subtasks}
-              onToggle={toggleSubtask}
-              onAdd={addSubtask}
+          {/* Description */}
+          <div className="mb-6">
+            <label htmlFor="notes" className="mb-2 block text-[13px] text-text-muted">
+              Description
+            </label>
+            <textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              onBlur={handleNotesBlur}
+              placeholder="Add details..."
+              className={cn(
+                'min-h-[120px] w-full resize-none rounded-md px-3 py-3 text-[15px]',
+                'bg-bg-input border border-capella-border-subtle',
+                'text-text-primary placeholder:text-text-muted',
+                'focus:border-capella-primary focus:outline-none focus:ring-2 focus:ring-capella-primary/20'
+              )}
             />
           </div>
 
-          {/* Footer */}
-          <div className="border-t border-surface-border p-6">
-            {showDeleteConfirm ? (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Delete this task?</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowDeleteConfirm(false)}
-                    className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-muted-foreground focus:ring-offset-1 focus:ring-offset-card"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="rounded-md bg-destructive px-3 py-1.5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-1 focus:ring-offset-card"
-                  >
-                    Delete
-                  </button>
-                </div>
+          {/* Subtasks */}
+          <SubtasksList
+            subtasks={subtasks}
+            onToggle={toggleSubtask}
+            onAdd={addSubtask}
+          />
+        </div>
+
+        {/* Footer - Delete */}
+        <div className="border-t border-capella-border p-6">
+          {showDeleteConfirm ? (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-text-secondary">Delete this task?</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="h-8 px-3 rounded-md text-sm text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="h-8 px-3 rounded-md text-sm font-medium bg-capella-danger text-white hover:bg-capella-danger/90 transition-colors"
+                >
+                  Delete
+                </button>
               </div>
-            ) : (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="flex items-center gap-2 text-sm font-medium text-destructive transition-colors hover:underline focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-1 focus:ring-offset-card rounded"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete task
-              </button>
-            )}
-          </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-2 text-sm font-medium text-capella-danger transition-colors hover:underline"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete task
+            </button>
+          )}
         </div>
       </div>
-    </FocusTrap>
+    </>
   );
 }
