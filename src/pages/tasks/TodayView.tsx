@@ -47,6 +47,7 @@ export default function TodayView() {
                 onTaskComplete={completeTask}
                 emptyMessage="No tasks for today"
                 selectedTaskId={selectedTask?.id}
+                sectionType="today"
               />
             )}
 
@@ -60,6 +61,7 @@ export default function TodayView() {
                 defaultCollapsed={activeFilter !== 'completed'}
                 showCount
                 selectedTaskId={selectedTask?.id}
+                sectionType="completed"
               />
             )}
 
