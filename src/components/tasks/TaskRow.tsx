@@ -11,6 +11,8 @@ interface TaskRowProps {
   onClick: () => void;
   onComplete: (id: string) => void;
   isSelected?: boolean;
+  isFirstTask?: boolean;
+  sectionType?: 'overdue' | 'today' | 'upcoming' | 'inbox' | 'completed';
 }
 
 // Priority border colors - subtle left border only for P1/P2
@@ -21,11 +23,27 @@ const priorityBorderStyles: Record<TaskPriority, string> = {
   none: '',
 };
 
+// Section-based visual authority
+const getSectionStyles = (sectionType?: string, isFirstTask?: boolean) => {
+  if (sectionType === 'overdue') {
+    return isFirstTask 
+      ? 'border-l-[4px] border-l-capella-danger' 
+      : 'border-l-[3px] border-l-capella-danger/70';
+  }
+  if (sectionType === 'upcoming' || sectionType === 'inbox') {
+    return 'opacity-80';
+  }
+  if (sectionType === 'completed') {
+    return 'opacity-50';
+  }
+  return '';
+};
+
 function isOverdue(task: Task): boolean {
   return task.dueDate === 'overdue';
 }
 
-export function TaskRow({ task, onClick, onComplete, isSelected = false }: TaskRowProps) {
+export function TaskRow({ task, onClick, onComplete, isSelected = false, isFirstTask = false, sectionType }: TaskRowProps) {
   const [isCompleting, setIsCompleting] = useState(false);
   const [shouldExit, setShouldExit] = useState(false);
   const { isRecentlyAdded } = useTaskContext();
@@ -42,11 +60,11 @@ export function TaskRow({ task, onClick, onComplete, isSelected = false }: TaskR
     
     setTimeout(() => {
       setShouldExit(true);
-    }, 300);
+    }, 350);
 
     setTimeout(() => {
       onComplete(task.id);
-    }, 450);
+    }, 550);
   };
 
   useEffect(() => {
@@ -56,22 +74,27 @@ export function TaskRow({ task, onClick, onComplete, isSelected = false }: TaskR
 
   const isNewTask = isRecentlyAdded(task.id);
   const hasOverdue = isOverdue(task);
-  const priorityStyle = priorityBorderStyles[task.priority];
+  const priorityStyle = sectionType !== 'overdue' ? priorityBorderStyles[task.priority] : '';
+  const sectionStyle = getSectionStyles(sectionType, isFirstTask);
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        // Base styles - 56px height for comfortable clicking
-        'group relative flex h-14 cursor-pointer items-center gap-4 rounded-md px-4',
-        // Priority border (only P1 and P2)
+        // Base styles
+        'group relative flex cursor-pointer items-center gap-4 rounded-md px-4',
+        // First task emphasis in primary sections
+        isFirstTask && (sectionType === 'overdue' || sectionType === 'today') 
+          ? 'h-16' 
+          : 'h-14',
+        // Priority border (only P1 and P2, not for overdue)
         priorityStyle,
-        // Hover state - very subtle (4-6% opacity)
-        'transition-colors duration-150 hover:bg-bg-elevated/50',
+        // Section-based authority styling
+        sectionStyle,
+        // Hover state - very subtle
+        'transition-all duration-200 hover:bg-bg-elevated/40',
         // Selected state
         isSelected && 'bg-bg-elevated',
-        // Completed state - slightly muted
-        task.completed && 'opacity-60',
         // Exit animation
         shouldExit && 'task-row-exit',
         // New task fade-in animation
@@ -96,14 +119,16 @@ export function TaskRow({ task, onClick, onComplete, isSelected = false }: TaskR
         )}
       </button>
 
-      {/* Task Title - Clean, no metadata */}
+      {/* Task Title - Visual hierarchy based on position */}
       <span
         className={cn(
-          'flex-1 truncate text-[15px]',
-          'transition-all duration-150',
-          task.completed || isCompleting
-            ? 'text-text-muted line-through'
-            : 'text-text-primary'
+          'flex-1 truncate transition-all duration-200',
+          // First task in primary sections gets emphasis
+          isFirstTask && (sectionType === 'overdue' || sectionType === 'today')
+            ? 'text-base font-medium text-text-primary'
+            : 'text-[15px] text-text-primary',
+          // Completed styling
+          (task.completed || isCompleting) && 'text-text-muted line-through'
         )}
       >
         {task.title}

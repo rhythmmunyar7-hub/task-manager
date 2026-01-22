@@ -47,6 +47,7 @@ export default function InboxView() {
                 onTaskComplete={completeTask}
                 emptyMessage="Inbox is empty"
                 selectedTaskId={selectedTask?.id}
+                sectionType="inbox"
               />
             )}
 
@@ -60,6 +61,7 @@ export default function InboxView() {
                 defaultCollapsed={activeFilter !== 'completed'}
                 showCount
                 selectedTaskId={selectedTask?.id}
+                sectionType="completed"
               />
             )}
 

@@ -81,7 +81,7 @@ export function UnifiedTopBar({
       <nav className="flex items-center gap-6">
         {navItems.map(item => {
         const isActive = location.pathname === item.path;
-        return <button key={item.path} onClick={() => navigate(item.path)} className={cn('relative text-sm font-medium transition-colors duration-150', isActive ? 'text-text-primary' : 'text-text-muted hover:text-text-secondary')}>
+        return <button key={item.path} onClick={() => navigate(item.path)} className={cn('relative transition-colors duration-150', isActive ? 'text-[15px] font-medium text-white' : 'text-sm text-text-muted hover:text-text-secondary')}>
               {item.label}
               {/* Active indicator - thin blue underline */}
               {isActive && <span className="absolute -bottom-[17px] left-0 right-0 h-[2px] bg-capella-primary" />}
@@ -89,10 +89,10 @@ export function UnifiedTopBar({
       })}
       </nav>
 
-      {/* Center: View Identity */}
+      {/* Center: View Identity - de-emphasized */}
       <div className="flex-1 flex justify-center">
-        <span className="text-xs text-text-muted">
-          {currentView} · {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
+        <span className="text-[11px] text-text-muted/60 font-light">
+          {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
         </span>
       </div>
 
@@ -147,9 +147,9 @@ export function UnifiedTopBar({
             <Search className="h-4 w-4" />
           </button>}
 
-        {/* Add Task Button - Green Primary Action */}
-        <button onClick={onAddClick} className={cn('flex h-8 w-8 items-center justify-center rounded-md transition-colors duration-150', 'bg-capella-success text-black hover:bg-capella-success/90')} aria-label="Add task">
-          <Plus className="h-4 w-4" strokeWidth={2.5} />
+        {/* Add Task Button - De-emphasized, activates on hover */}
+        <button onClick={onAddClick} className={cn('flex h-7 w-7 items-center justify-center rounded-md transition-all duration-200', 'bg-capella-success/70 text-black/80 hover:bg-capella-success hover:text-black')} aria-label="Add task">
+          <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
         </button>
 
         {/* Settings */}

@@ -59,6 +59,7 @@ export default function AllTasksView() {
                     onTaskComplete={completeTask}
                     showCount
                     selectedTaskId={selectedTask?.id}
+                    sectionType="overdue"
                   />
                 )}
 
@@ -70,6 +71,7 @@ export default function AllTasksView() {
                     onTaskComplete={completeTask}
                     showCount
                     selectedTaskId={selectedTask?.id}
+                    sectionType="today"
                   />
                 )}
 
@@ -82,6 +84,7 @@ export default function AllTasksView() {
                     showCount
                     collapsible
                     selectedTaskId={selectedTask?.id}
+                    sectionType="upcoming"
                   />
                 )}
 
@@ -94,6 +97,7 @@ export default function AllTasksView() {
                     showCount
                     collapsible
                     selectedTaskId={selectedTask?.id}
+                    sectionType="inbox"
                   />
                 )}
               </>
@@ -109,6 +113,7 @@ export default function AllTasksView() {
                 defaultCollapsed={activeFilter === 'all'}
                 showCount
                 selectedTaskId={selectedTask?.id}
+                sectionType="completed"
               />
             )}
 
