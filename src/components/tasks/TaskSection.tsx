@@ -14,7 +14,9 @@ interface TaskSectionProps {
   collapsible?: boolean;
   defaultCollapsed?: boolean;
   selectedTaskId?: string;
+  keyboardSelectedId?: string | null;
   variant?: 'primary' | 'secondary' | 'muted';
+  focusTaskId?: string | null;
 }
 
 export function TaskSection({
@@ -25,7 +27,9 @@ export function TaskSection({
   collapsible = false,
   defaultCollapsed = false,
   selectedTaskId,
+  keyboardSelectedId,
   variant = 'primary',
+  focusTaskId,
 }: TaskSectionProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
@@ -84,14 +88,15 @@ export function TaskSection({
       {/* Task List - Increased vertical spacing */}
       {!isCollapsed && (
         <div className="space-y-1">
-          {tasks.map((task, index) => (
+          {tasks.map((task) => (
             <TaskRow
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task)}
               onComplete={onTaskComplete}
               isSelected={selectedTaskId === task.id}
-              isFocus={index === 0 && variant === 'primary'}
+              isKeyboardSelected={keyboardSelectedId === task.id}
+              isFocus={focusTaskId === task.id}
             />
           ))}
         </div>

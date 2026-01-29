@@ -79,6 +79,9 @@ interface TaskContextType {
   selectedTask: Task | null;
   selectedTaskIndex: number;
   isAddTaskOpen: boolean;
+  showMomentumMessage: boolean;
+  lastCompletedTaskId: string | null;
+  suggestionDismissedThisSession: boolean;
   addTask: (title: string, priority?: TaskPriority, projectId?: string, dueDate?: string) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
@@ -87,11 +90,14 @@ interface TaskContextType {
   setSelectedTaskIndex: (index: number) => void;
   openAddTask: () => void;
   closeAddTask: () => void;
+  dismissMomentumMessage: () => void;
+  dismissSuggestion: () => void;
   getTodayTasks: () => Task[];
   getInboxTasks: () => Task[];
   getCompletedTasks: () => Task[];
   getUpcomingTasks: () => Task[];
   getOverdueTasks: () => Task[];
+  getIncompleteTasks: () => Task[];
   isRecentlyAdded: (id: string) => boolean;
 }
 
@@ -103,6 +109,11 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const [selectedTaskIndex, setSelectedTaskIndex] = useState<number>(-1);
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [recentlyAddedIds, setRecentlyAddedIds] = useState<Set<string>>(new Set());
+  
+  // Momentum state
+  const [showMomentumMessage, setShowMomentumMessage] = useState(false);
+  const [lastCompletedTaskId, setLastCompletedTaskId] = useState<string | null>(null);
+  const [suggestionDismissedThisSession, setSuggestionDismissedThisSession] = useState(false);
 
   const addTask = useCallback((
     title: string, 
@@ -147,6 +158,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const completeTask = useCallback((id: string) => {
+    const task = tasks.find(t => t.id === id);
+    const wasIncomplete = task && !task.completed;
+    
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id
@@ -158,10 +172,28 @@ export function TaskProvider({ children }: { children: ReactNode }) {
           : task
       )
     );
-  }, []);
+    
+    // Trigger momentum message after completing a task
+    if (wasIncomplete) {
+      setLastCompletedTaskId(id);
+      // Delay momentum message to allow completion animation
+      setTimeout(() => {
+        setShowMomentumMessage(true);
+      }, 600);
+    }
+  }, [tasks]);
 
   const selectTask = useCallback((task: Task | null) => {
     setSelectedTask(task);
+  }, []);
+
+  const dismissMomentumMessage = useCallback(() => {
+    setShowMomentumMessage(false);
+  }, []);
+
+  const dismissSuggestion = useCallback(() => {
+    setSuggestionDismissedThisSession(true);
+    setShowMomentumMessage(false);
   }, []);
 
   const openAddTask = useCallback(() => {
@@ -198,6 +230,10 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     return tasks.filter((task) => !task.completed && task.dueDate === 'overdue');
   }, [tasks]);
 
+  const getIncompleteTasks = useCallback(() => {
+    return tasks.filter((task) => !task.completed);
+  }, [tasks]);
+
   return (
     <TaskContext.Provider
       value={{
@@ -206,6 +242,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         selectedTask,
         selectedTaskIndex,
         isAddTaskOpen,
+        showMomentumMessage,
+        lastCompletedTaskId,
+        suggestionDismissedThisSession,
         addTask,
         updateTask,
         deleteTask,
@@ -214,11 +253,14 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         setSelectedTaskIndex,
         openAddTask,
         closeAddTask,
+        dismissMomentumMessage,
+        dismissSuggestion,
         getTodayTasks,
         getInboxTasks,
         getCompletedTasks,
         getUpcomingTasks,
         getOverdueTasks,
+        getIncompleteTasks,
         isRecentlyAdded,
       }}
     >

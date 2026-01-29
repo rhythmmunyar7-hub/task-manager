@@ -11,6 +11,7 @@ interface TaskRowProps {
   onClick: () => void;
   onComplete: (id: string) => void;
   isSelected?: boolean;
+  isKeyboardSelected?: boolean;
   isFocus?: boolean;
 }
 
@@ -18,7 +19,8 @@ export function TaskRow({
   task, 
   onClick, 
   onComplete, 
-  isSelected = false, 
+  isSelected = false,
+  isKeyboardSelected = false,
   isFocus = false 
 }: TaskRowProps) {
   const [isCompleting, setIsCompleting] = useState(false);
@@ -68,8 +70,11 @@ export function TaskRow({
         // Standard hover
         !isFocus && 'hover:bg-white/[0.03]',
         
-        // Selected state
+        // Selected state (click)
         isSelected && 'bg-white/[0.05]',
+        
+        // Keyboard navigation selection - subtle ring
+        isKeyboardSelected && !isSelected && 'ring-1 ring-capella-primary/40 bg-white/[0.02]',
         
         // Completed tasks visually compress
         isCompleted && !isFocus && 'h-11 opacity-50',

@@ -1,9 +1,17 @@
 'use client';
 
+import { useMemo, useCallback } from 'react';
 import { useTaskContext } from '@/context/TaskContext';
 import { QuickAddTask } from '@/components/tasks/QuickAddTask';
 import { TaskSection } from '@/components/tasks/TaskSection';
 import { EmptyState } from '@/components/tasks/EmptyState';
+import { LaterSection } from '@/components/tasks/LaterSection';
+import { MomentumMessage } from '@/components/tasks/MomentumMessage';
+import { NextTaskSuggestion } from '@/components/tasks/NextTaskSuggestion';
+import { OverwhelmBanner } from '@/components/tasks/OverwhelmBanner';
+import { useFocusTask } from '@/hooks/useFocusTask';
+import { useOverwhelmMode } from '@/hooks/useOverwhelmMode';
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
 
 export default function AllTasksView() {
   const {
@@ -16,6 +24,12 @@ export default function AllTasksView() {
     getCompletedTasks,
     getUpcomingTasks,
     getOverdueTasks,
+    getIncompleteTasks,
+    showMomentumMessage,
+    dismissMomentumMessage,
+    suggestionDismissedThisSession,
+    dismissSuggestion,
+    lastCompletedTaskId,
   } = useTaskContext();
 
   const overdueTasks = getOverdueTasks();
@@ -23,69 +37,115 @@ export default function AllTasksView() {
   const upcomingTasks = getUpcomingTasks();
   const inboxTasks = getInboxTasks();
   const completedTasks = getCompletedTasks();
+  const incompleteTasks = getIncompleteTasks();
+
+  // Focus Task logic
+  const { focusTask, getSuggestedNextTask } = useFocusTask({
+    overdueTasks,
+    todayTasks,
+    inboxTasks,
+    allIncompleteTasks: incompleteTasks,
+  });
+
+  // Overwhelm detection
+  const { isOverwhelmed, visibleCount, overwhelmMessage } = useOverwhelmMode({
+    incompleteTasks,
+  });
+
+  // Combine all active tasks in priority order
+  const allActiveTasks = useMemo(() => {
+    return [...overdueTasks, ...todayTasks, ...upcomingTasks, ...inboxTasks];
+  }, [overdueTasks, todayTasks, upcomingTasks, inboxTasks]);
+
+  // Apply visibility limits
+  const visibleTasks = useMemo(() => {
+    return allActiveTasks.slice(0, visibleCount);
+  }, [allActiveTasks, visibleCount]);
+
+  const laterTasks = useMemo(() => {
+    return allActiveTasks.slice(visibleCount);
+  }, [allActiveTasks, visibleCount]);
+
+  // Keyboard navigation
+  const handleDismiss = useCallback(() => {
+    selectTask(null);
+    dismissMomentumMessage();
+  }, [selectTask, dismissMomentumMessage]);
+
+  const { selectedTaskId: keyboardSelectedId } = useKeyboardNavigation({
+    tasks: visibleTasks,
+    onTaskSelect: selectTask,
+    onTaskComplete: completeTask,
+    onDismiss: handleDismiss,
+  });
+
+  // Get suggested next task after completion
+  const suggestedTask = useMemo(() => {
+    if (!lastCompletedTaskId || suggestionDismissedThisSession) return null;
+    const lastCompleted = { id: lastCompletedTaskId } as any;
+    return getSuggestedNextTask(lastCompleted);
+  }, [lastCompletedTaskId, suggestionDismissedThisSession, getSuggestedNextTask]);
+
+  const handleAcceptSuggestion = useCallback((task: any) => {
+    selectTask(task);
+    dismissMomentumMessage();
+  }, [selectTask, dismissMomentumMessage]);
 
   const hasNoTasks = tasks.length === 0;
-  const hasActiveTasks = overdueTasks.length > 0 || todayTasks.length > 0 || upcomingTasks.length > 0 || inboxTasks.length > 0;
 
   return (
     <div className="flex h-full flex-col">
       <main className="flex-1 overflow-y-auto px-8 py-8">
-        {/* Always-visible Quick Add */}
+        {/* Quick Add */}
         <QuickAddTask />
+
+        {/* Overwhelm Banner */}
+        <OverwhelmBanner message={overwhelmMessage || ''} show={isOverwhelmed} />
 
         {hasNoTasks ? (
           <EmptyState type="all" />
         ) : (
           <>
-            {/* Overdue - Urgent, but calm */}
-            {overdueTasks.length > 0 && (
+            {/* Momentum Message */}
+            <MomentumMessage
+              show={showMomentumMessage && !suggestedTask}
+              onDismiss={dismissMomentumMessage}
+            />
+
+            {/* Next Task Suggestion */}
+            {suggestedTask && (
+              <div className="mb-4">
+                <NextTaskSuggestion
+                  suggestedTask={suggestedTask}
+                  onAccept={handleAcceptSuggestion}
+                  onDismiss={dismissSuggestion}
+                  show={showMomentumMessage}
+                />
+              </div>
+            )}
+
+            {/* All Tasks - Priority order with visibility limit */}
+            {visibleTasks.length > 0 && (
               <TaskSection
-                title="Overdue"
-                tasks={overdueTasks}
+                title="Tasks"
+                tasks={visibleTasks}
                 onTaskClick={selectTask}
                 onTaskComplete={completeTask}
                 selectedTaskId={selectedTask?.id}
+                keyboardSelectedId={keyboardSelectedId}
+                focusTaskId={focusTask?.id}
                 variant="primary"
               />
             )}
 
-            {/* Today */}
-            {todayTasks.length > 0 && (
-              <TaskSection
-                title="Today"
-                tasks={todayTasks}
-                onTaskClick={selectTask}
-                onTaskComplete={completeTask}
-                selectedTaskId={selectedTask?.id}
-                variant={overdueTasks.length > 0 ? 'secondary' : 'primary'}
-              />
-            )}
-
-            {/* Upcoming - Secondary */}
-            {upcomingTasks.length > 0 && (
-              <TaskSection
-                title="Upcoming"
-                tasks={upcomingTasks}
-                onTaskClick={selectTask}
-                onTaskComplete={completeTask}
-                collapsible
-                selectedTaskId={selectedTask?.id}
-                variant="secondary"
-              />
-            )}
-
-            {/* No Due Date (Inbox) */}
-            {inboxTasks.length > 0 && (
-              <TaskSection
-                title="No Due Date"
-                tasks={inboxTasks}
-                onTaskClick={selectTask}
-                onTaskComplete={completeTask}
-                collapsible
-                selectedTaskId={selectedTask?.id}
-                variant="secondary"
-              />
-            )}
+            {/* Later Section */}
+            <LaterSection
+              tasks={laterTasks}
+              onTaskClick={selectTask}
+              onTaskComplete={completeTask}
+              selectedTaskId={selectedTask?.id}
+              keyboardSelectedId={keyboardSelectedId}
+            />
 
             {/* Completed - Muted, collapsed by default */}
             {completedTasks.length > 0 && (
@@ -97,6 +157,8 @@ export default function AllTasksView() {
                 collapsible
                 defaultCollapsed
                 selectedTaskId={selectedTask?.id}
+                keyboardSelectedId={keyboardSelectedId}
+                focusTaskId={null}
                 variant="muted"
               />
             )}
