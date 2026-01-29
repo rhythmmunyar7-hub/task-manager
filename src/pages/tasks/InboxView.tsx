@@ -1,78 +1,63 @@
 'use client';
 
-import { useRef } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { useTaskContext } from '@/context/TaskContext';
-import { AddTaskInput } from '@/components/tasks/AddTaskInput';
+import { QuickAddTask } from '@/components/tasks/QuickAddTask';
 import { TaskSection } from '@/components/tasks/TaskSection';
 import { EmptyState } from '@/components/tasks/EmptyState';
-import { TaskFilter } from '@/types/task';
-
-interface OutletContext {
-  activeFilter: TaskFilter;
-}
 
 export default function InboxView() {
-  const { activeFilter } = useOutletContext<OutletContext>();
   const {
     selectedTask,
     completeTask,
     selectTask,
-    openAddTask,
     getInboxTasks,
     getCompletedTasks,
   } = useTaskContext();
 
-  const inputRef = useRef<HTMLInputElement>(null);
   const inboxTasks = getInboxTasks();
   const completedTasks = getCompletedTasks();
 
-  const showActive = activeFilter === 'all' || activeFilter === 'active';
-  const showCompleted = activeFilter === 'all' || activeFilter === 'completed';
+  const hasNoActiveTasks = inboxTasks.length === 0;
 
   return (
     <div className="flex h-full flex-col">
-      <main className="flex-1 overflow-y-auto px-8 py-6">
-        <AddTaskInput ref={inputRef} />
+      <main className="flex-1 overflow-y-auto px-8 py-8">
+        {/* Always-visible Quick Add */}
+        <QuickAddTask />
 
-        {inboxTasks.length === 0 && completedTasks.length === 0 ? (
-          <EmptyState type="inbox" onAddTask={openAddTask} />
+        {hasNoActiveTasks && completedTasks.length === 0 ? (
+          <EmptyState type="inbox" />
         ) : (
           <>
-            {showActive && inboxTasks.length > 0 && (
+            {/* Inbox Tasks */}
+            {inboxTasks.length > 0 && (
               <TaskSection
-                title="INBOX"
+                title="Inbox"
                 tasks={inboxTasks}
                 onTaskClick={selectTask}
                 onTaskComplete={completeTask}
-                emptyMessage="Inbox is empty"
                 selectedTaskId={selectedTask?.id}
-                sectionType="inbox"
+                variant="primary"
               />
             )}
 
-            {showCompleted && completedTasks.length > 0 && (
+            {/* Show empty state if no inbox tasks but has completed */}
+            {hasNoActiveTasks && completedTasks.length > 0 && (
+              <EmptyState type="inbox" />
+            )}
+
+            {/* Completed - Muted, collapsible */}
+            {completedTasks.length > 0 && (
               <TaskSection
-                title="COMPLETED"
+                title="Completed"
                 tasks={completedTasks}
                 onTaskClick={selectTask}
                 onTaskComplete={completeTask}
                 collapsible
-                defaultCollapsed={activeFilter !== 'completed'}
-                showCount
+                defaultCollapsed
                 selectedTaskId={selectedTask?.id}
-                sectionType="completed"
+                variant="muted"
               />
-            )}
-
-            {activeFilter === 'active' && inboxTasks.length === 0 && (
-              <EmptyState type="inbox" onAddTask={openAddTask} />
-            )}
-
-            {activeFilter === 'completed' && completedTasks.length === 0 && (
-              <div className="py-12 text-center text-text-muted text-sm">
-                No completed tasks
-              </div>
             )}
           </>
         )}
