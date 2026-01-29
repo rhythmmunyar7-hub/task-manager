@@ -69,7 +69,7 @@ export default function TodayView() {
     dismissMomentumMessage();
   }, [selectTask, dismissMomentumMessage]);
 
-  const { selectedTaskId: keyboardSelectedId } = useKeyboardNavigation({
+  const { selectedTaskId: keyboardSelectedId, isKeyboardActive } = useKeyboardNavigation({
     tasks: visibleTasks,
     onTaskSelect: selectTask,
     onTaskComplete: completeTask,
@@ -129,7 +129,7 @@ export default function TodayView() {
                 onTaskClick={selectTask}
                 onTaskComplete={completeTask}
                 selectedTaskId={selectedTask?.id}
-                keyboardSelectedId={keyboardSelectedId}
+                keyboardSelectedId={isKeyboardActive ? keyboardSelectedId : null}
                 focusTaskId={focusTask?.id}
                 variant="primary"
               />
@@ -141,7 +141,7 @@ export default function TodayView() {
               onTaskClick={selectTask}
               onTaskComplete={completeTask}
               selectedTaskId={selectedTask?.id}
-              keyboardSelectedId={keyboardSelectedId}
+              keyboardSelectedId={isKeyboardActive ? keyboardSelectedId : null}
             />
 
             {/* Empty state when no active tasks */}
@@ -159,7 +159,7 @@ export default function TodayView() {
                 collapsible
                 defaultCollapsed
                 selectedTaskId={selectedTask?.id}
-                keyboardSelectedId={keyboardSelectedId}
+                keyboardSelectedId={null}
                 focusTaskId={null}
                 variant="muted"
               />

@@ -73,8 +73,8 @@ export function TaskRow({
         // Selected state (click)
         isSelected && 'bg-white/[0.05]',
         
-        // Keyboard navigation selection - subtle ring
-        isKeyboardSelected && !isSelected && 'ring-1 ring-capella-primary/40 bg-white/[0.02]',
+        // Keyboard navigation selection - visible ring only when keyboard active
+        isKeyboardSelected && 'ring-1 ring-capella-primary/50 ring-offset-1 ring-offset-bg-main bg-white/[0.03]',
         
         // Completed tasks visually compress
         isCompleted && !isFocus && 'h-11 opacity-50',

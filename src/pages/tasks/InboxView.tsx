@@ -64,7 +64,7 @@ export default function InboxView() {
     dismissMomentumMessage();
   }, [selectTask, dismissMomentumMessage]);
 
-  const { selectedTaskId: keyboardSelectedId } = useKeyboardNavigation({
+  const { selectedTaskId: keyboardSelectedId, isKeyboardActive } = useKeyboardNavigation({
     tasks: visibleTasks,
     onTaskSelect: selectTask,
     onTaskComplete: completeTask,
@@ -124,7 +124,7 @@ export default function InboxView() {
                 onTaskClick={selectTask}
                 onTaskComplete={completeTask}
                 selectedTaskId={selectedTask?.id}
-                keyboardSelectedId={keyboardSelectedId}
+                keyboardSelectedId={isKeyboardActive ? keyboardSelectedId : null}
                 focusTaskId={focusTask?.id}
                 variant="primary"
               />
@@ -136,7 +136,7 @@ export default function InboxView() {
               onTaskClick={selectTask}
               onTaskComplete={completeTask}
               selectedTaskId={selectedTask?.id}
-              keyboardSelectedId={keyboardSelectedId}
+              keyboardSelectedId={isKeyboardActive ? keyboardSelectedId : null}
             />
 
             {/* Show empty state if no inbox tasks but has completed */}
@@ -154,7 +154,7 @@ export default function InboxView() {
                 collapsible
                 defaultCollapsed
                 selectedTaskId={selectedTask?.id}
-                keyboardSelectedId={keyboardSelectedId}
+                keyboardSelectedId={null}
                 focusTaskId={null}
                 variant="muted"
               />
