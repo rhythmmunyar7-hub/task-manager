@@ -1,6 +1,6 @@
 'use client';
 
-import { Circle } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
@@ -11,14 +11,17 @@ const emptyStateConfig = {
   today: {
     message: "You're all clear.",
     subtext: "No tasks scheduled for today.",
+    showIcon: true,
   },
   inbox: {
     message: "Inbox zero.",
-    subtext: null,
+    subtext: "Everything is organized.",
+    showIcon: true,
   },
   all: {
     message: "No tasks yet.",
     subtext: "Add your first task to get started.",
+    showIcon: false,
   },
 };
 
@@ -27,25 +30,27 @@ export function EmptyState({ type }: EmptyStateProps) {
 
   return (
     <div className={cn(
-      'flex flex-col items-center justify-center py-32 text-center',
+      'flex flex-col items-center justify-center py-24 text-center',
       'animate-fade-in'
     )}>
-      {/* Minimal Circle - Calm, intentional */}
-      <div className="mb-6">
-        <Circle 
-          className="h-8 w-8 text-text-muted/20" 
-          strokeWidth={1}
-        />
-      </div>
+      {/* Success indicator for earned empty states */}
+      {config.showIcon && (
+        <div className="mb-5">
+          <CheckCircle2 
+            className="h-10 w-10 text-capella-success/40" 
+            strokeWidth={1.5}
+          />
+        </div>
+      )}
 
       {/* Primary Message */}
-      <p className="text-[15px] text-text-secondary mb-1">
+      <p className="text-[16px] text-text-secondary font-medium mb-2">
         {config.message}
       </p>
 
-      {/* Subtext - Optional */}
+      {/* Subtext */}
       {config.subtext && (
-        <p className="text-[13px] text-text-muted/60">
+        <p className="text-[14px] text-text-muted/60">
           {config.subtext}
         </p>
       )}

@@ -87,9 +87,10 @@ export function useKeyboardNavigation({
           }
           break;
 
-        case ' ':// Complete task
+        case ' ':
+          // Complete task
           e.preventDefault();
-          if (tasks[selectedIndex]) {
+          if (tasks[selectedIndex] && isKeyboardActive) {
             onTaskComplete(tasks[selectedIndex].id);
           }
           break;
@@ -97,6 +98,7 @@ export function useKeyboardNavigation({
         case 'escape':
           // Dismiss/collapse
           e.preventDefault();
+          setIsKeyboardActive(false);
           onDismiss();
           break;
 
@@ -104,26 +106,26 @@ export function useKeyboardNavigation({
           break;
       }
     },
-    [isEnabled, tasks, selectedIndex, onTaskSelect, onTaskComplete, onDismiss]
+    [isEnabled, tasks, selectedIndex, onTaskSelect, onTaskComplete, onDismiss, isKeyboardActive]
   );
 
-  // Track mouse movement to deactivate keyboard mode
-  const handleMouseMove = useCallback(() => {
+  // Deactivate keyboard mode on mouse click
+  const handleMouseDown = useCallback(() => {
     if (lastInteractionRef.current === 'keyboard') {
       lastInteractionRef.current = 'mouse';
-      // Keep keyboard active but allow mouse to take over on click
+      setIsKeyboardActive(false);
     }
   }, []);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mousedown', handleMouseDown);
     
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mousedown', handleMouseDown);
     };
-  }, [handleKeyDown, handleMouseMove]);
+  }, [handleKeyDown, handleMouseDown]);
 
   return {
     selectedIndex,

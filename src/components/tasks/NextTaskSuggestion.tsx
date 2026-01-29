@@ -31,15 +31,16 @@ export function NextTaskSuggestion({
 
   useEffect(() => {
     if (show && suggestedTask) {
-      // Delay appearance for smooth momentum
+      // Delay appearance to avoid competing with momentum message
       const timer = setTimeout(() => {
         setIsVisible(true);
         setIsExiting(false);
-      }, 800);
+      }, 600);
       return () => clearTimeout(timer);
     } else {
       setIsExiting(true);
-      setTimeout(() => setIsVisible(false), 200);
+      const timer = setTimeout(() => setIsVisible(false), 200);
+      return () => clearTimeout(timer);
     }
   }, [show, suggestedTask]);
 

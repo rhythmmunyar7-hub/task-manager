@@ -44,6 +44,9 @@ export function TaskSection({
     return null;
   }
 
+  // Single task: don't over-emphasize focus styling
+  const isSingleTask = tasks.length === 1;
+
   return (
     <section className="mb-8">
       {/* Section Header - Calm, 14-15px, no uppercase shouting */}
@@ -96,7 +99,7 @@ export function TaskSection({
               onComplete={onTaskComplete}
               isSelected={selectedTaskId === task.id}
               isKeyboardSelected={keyboardSelectedId === task.id}
-              isFocus={focusTaskId === task.id}
+              isFocus={focusTaskId === task.id && !isSingleTask}
             />
           ))}
         </div>
