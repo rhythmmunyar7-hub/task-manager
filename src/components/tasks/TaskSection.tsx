@@ -6,8 +6,6 @@ import { Task } from '@/types/task';
 import { TaskRow } from './TaskRow';
 import { cn } from '@/lib/utils';
 
-type SectionType = 'overdue' | 'today' | 'upcoming' | 'inbox' | 'completed';
-
 interface TaskSectionProps {
   title: string;
   tasks: Task[];
@@ -15,28 +13,9 @@ interface TaskSectionProps {
   onTaskComplete: (id: string) => void;
   collapsible?: boolean;
   defaultCollapsed?: boolean;
-  showCount?: boolean;
-  emptyMessage?: string;
   selectedTaskId?: string;
-  sectionType?: SectionType;
+  variant?: 'primary' | 'secondary' | 'muted';
 }
-
-// Section header styling based on type
-const getSectionHeaderStyle = (sectionType?: SectionType) => {
-  switch (sectionType) {
-    case 'overdue':
-      return 'text-capella-danger/80';
-    case 'today':
-      return 'text-text-muted';
-    case 'upcoming':
-    case 'inbox':
-      return 'text-text-muted/70';
-    case 'completed':
-      return 'text-text-muted/60';
-    default:
-      return 'text-text-muted';
-  }
-};
 
 export function TaskSection({
   title,
@@ -45,10 +24,8 @@ export function TaskSection({
   onTaskComplete,
   collapsible = false,
   defaultCollapsed = false,
-  showCount = false,
-  emptyMessage,
   selectedTaskId,
-  sectionType,
+  variant = 'primary',
 }: TaskSectionProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
@@ -58,21 +35,20 @@ export function TaskSection({
     }
   };
 
-  const headerStyle = getSectionHeaderStyle(sectionType);
+  // Empty sections collapse silently
+  if (tasks.length === 0) {
+    return null;
+  }
 
   return (
-    <section className={cn(
-      'mb-6',
-      // Today section gets subtle containment
-      sectionType === 'today' && 'bg-white/[0.015] rounded-lg -mx-2 px-2 py-1'
-    )}>
-      {/* Section Header - Uppercase, authority-based styling */}
+    <section className="mb-8">
+      {/* Section Header - Calm, 14-15px, no uppercase shouting */}
       <button
         onClick={handleHeaderClick}
         disabled={!collapsible}
         className={cn(
-          'flex w-full items-center gap-2 py-3',
-          collapsible && 'cursor-pointer hover:opacity-80',
+          'flex w-full items-center gap-2 mb-3',
+          collapsible && 'cursor-pointer group',
           'text-left'
         )}
       >
@@ -80,49 +56,44 @@ export function TaskSection({
         {collapsible && (
           <ChevronDown 
             className={cn(
-              'h-3.5 w-3.5 transition-transform duration-150',
-              headerStyle,
+              'h-4 w-4 transition-transform duration-150',
+              'text-text-muted/60 group-hover:text-text-muted',
               isCollapsed && '-rotate-90'
             )} 
           />
         )}
 
-        {/* Title - Small uppercase with section-based color */}
+        {/* Title - Subtle, medium weight */}
         <span className={cn(
-          'text-xs font-medium uppercase tracking-wider',
-          headerStyle
+          'text-[14px] font-medium tracking-wide',
+          variant === 'primary' && 'text-text-secondary',
+          variant === 'secondary' && 'text-text-muted/80',
+          variant === 'muted' && 'text-text-muted/60'
         )}>
           {title}
         </span>
 
-        {/* Count - more muted */}
-        {showCount && (
-          <span className="text-[11px] text-text-muted/60">
+        {/* Count - Only for collapsible sections */}
+        {collapsible && (
+          <span className="text-[12px] text-text-muted/50">
             {tasks.length}
           </span>
         )}
       </button>
 
-      {/* Task List */}
+      {/* Task List - Increased vertical spacing */}
       {!isCollapsed && (
-        <div className="space-y-0.5">
-          {tasks.length > 0 ? (
-            tasks.map((task, index) => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                onClick={() => onTaskClick(task)}
-                onComplete={onTaskComplete}
-                isSelected={selectedTaskId === task.id}
-                isFirstTask={index === 0}
-                sectionType={sectionType}
-              />
-            ))
-          ) : emptyMessage ? (
-            <p className="py-4 text-center text-sm text-text-muted/70">
-              {emptyMessage}
-            </p>
-          ) : null}
+        <div className="space-y-1">
+          {tasks.map((task, index) => (
+            <TaskRow
+              key={task.id}
+              task={task}
+              onClick={() => onTaskClick(task)}
+              onComplete={onTaskComplete}
+              isSelected={selectedTaskId === task.id}
+              isFocus={index === 0 && variant === 'primary'}
+            />
+          ))}
         </div>
       )}
     </section>
