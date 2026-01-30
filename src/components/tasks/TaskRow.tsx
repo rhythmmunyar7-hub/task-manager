@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, AlertCircle } from 'lucide-react';
+import { Check, AlertCircle, Zap as SprintIcon } from 'lucide-react';
 import { Task } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { useTaskContext } from '@/context/TaskContext';
@@ -16,6 +16,7 @@ interface TaskRowProps {
   isSelected?: boolean;
   isKeyboardSelected?: boolean;
   isFocus?: boolean;
+  showSprintSelect?: boolean;
 }
 
 // Date status to color mapping - using design system tokens
@@ -34,11 +35,12 @@ export function TaskRow({
   onComplete, 
   isSelected = false,
   isKeyboardSelected = false,
-  isFocus = false 
+  isFocus = false,
+  showSprintSelect = true,
 }: TaskRowProps) {
   const [isCompleting, setIsCompleting] = useState(false);
   const [shouldExit, setShouldExit] = useState(false);
-  const { isRecentlyAdded } = useTaskContext();
+  const { isRecentlyAdded, isSprintSelected, toggleSprintTask } = useTaskContext();
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -59,6 +61,11 @@ export function TaskRow({
     }, 450);
   };
 
+  const handleSprintToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleSprintTask(task);
+  };
+
   useEffect(() => {
     setIsCompleting(false);
     setShouldExit(false);
@@ -66,6 +73,7 @@ export function TaskRow({
 
   const isNewTask = isRecentlyAdded(task.id);
   const isCompleted = task.completed || isCompleting;
+  const isInSprint = isSprintSelected(task.id);
   
   // Date display logic
   const dateStatus = getDateStatus(task.dueDate);
@@ -90,8 +98,11 @@ export function TaskRow({
           'shadow-[0_2px_8px_-2px_rgba(0,0,0,0.3)]',
         ],
         
+        // Sprint selected state
+        isInSprint && !isFocus && 'bg-capella-primary/5',
+        
         // Standard hover
-        !isFocus && 'hover:bg-white/[0.03]',
+        !isFocus && !isInSprint && 'hover:bg-white/[0.03]',
         
         // Selected state (click)
         isSelected && 'bg-white/[0.05]',
@@ -113,6 +124,24 @@ export function TaskRow({
         isNewTask && 'task-row-enter'
       )}
     >
+      {/* Sprint Selection Toggle */}
+      {showSprintSelect && !isCompleted && (
+        <button
+          onClick={handleSprintToggle}
+          className={cn(
+            'shrink-0 h-5 w-5 rounded flex items-center justify-center',
+            'transition-all duration-150',
+            isInSprint
+              ? 'bg-capella-primary/20 text-capella-primary'
+              : 'opacity-0 group-hover:opacity-100 text-text-muted hover:text-text-secondary hover:bg-white/[0.04]'
+          )}
+          aria-label={isInSprint ? 'Remove from sprint' : 'Add to sprint'}
+          title={isInSprint ? 'Remove from sprint' : 'Add to sprint (max 3)'}
+        >
+          <SprintIcon className="h-3 w-3" strokeWidth={2} />
+        </button>
+      )}
+
       {/* Checkbox - 20x20px consistent */}
       <button
         onClick={handleCheckboxClick}

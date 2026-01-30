@@ -6,7 +6,9 @@ import { TopBar } from '@/components/tasks/TopBar';
 import { KeyboardShortcutsModal } from '@/components/tasks/KeyboardShortcutsModal';
 import { TaskDetailPanel } from '@/components/tasks/TaskDetailPanel';
 import { PlanningMode } from '@/components/planning/PlanningMode';
+import { FocusSprintMode, FocusSprintEntry, FocusExitSummary } from '@/components/focus';
 import { useTaskContext } from '@/context/TaskContext';
+import { useFocusSprint } from '@/hooks/useFocusSprint';
 import { cn } from '@/lib/utils';
 
 export default function TaskLayout() {
@@ -17,15 +19,44 @@ export default function TaskLayout() {
     updateTask, 
     deleteTask,
     openAddTask,
+    sprintSelectedTasks,
+    clearSprintTasks,
+    removeSprintTask,
   } = useTaskContext();
   
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [isPlanningMode, setIsPlanningMode] = useState(false);
+  const [showSprintEntry, setShowSprintEntry] = useState(false);
+  const [sprintValidationError, setSprintValidationError] = useState<string>('');
+
+  // Focus Sprint hook
+  const {
+    isActive: isFocusSprint,
+    currentTask: focusCurrentTask,
+    remainingTasks: focusRemainingTasks,
+    completedCount,
+    totalCount,
+    timerEnabled,
+    timerDuration,
+    timerRemaining,
+    timerPaused,
+    exitSummary,
+    canStartSprint,
+    startSprint,
+    endSprint,
+    completeCurrentTask,
+    toggleTimer,
+    setTimerDuration,
+    pauseTimer,
+    resumeTimer,
+    hideTimer,
+    dismissSummary,
+  } = useFocusSprint();
 
   // Enter planning mode
   const enterPlanningMode = useCallback(() => {
     setIsPlanningMode(true);
-    selectTask(null); // Clear selection when entering planning
+    selectTask(null);
   }, [selectTask]);
 
   // Exit planning mode
@@ -33,9 +64,33 @@ export default function TaskLayout() {
     setIsPlanningMode(false);
   }, []);
 
-  // Keyboard shortcut for planning mode (Cmd/Ctrl + P)
+  // Open sprint entry dialog
+  const openSprintEntry = useCallback(() => {
+    setSprintValidationError('');
+    setShowSprintEntry(true);
+  }, []);
+
+  // Close sprint entry dialog
+  const closeSprintEntry = useCallback(() => {
+    setShowSprintEntry(false);
+    setSprintValidationError('');
+  }, []);
+
+  // Handle starting sprint
+  const handleStartSprint = useCallback((timerDuration: 25 | 50 | null) => {
+    const result = startSprint(sprintSelectedTasks, timerDuration);
+    if (!result.valid && result.message) {
+      setSprintValidationError(result.message);
+      return;
+    }
+    setShowSprintEntry(false);
+    clearSprintTasks();
+  }, [sprintSelectedTasks, startSprint, clearSprintTasks]);
+
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + P -> planning mode
       if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
         e.preventDefault();
         if (isPlanningMode) {
@@ -43,12 +98,57 @@ export default function TaskLayout() {
         } else {
           enterPlanningMode();
         }
+        return;
+      }
+
+      // Cmd/Ctrl + Shift + F -> Focus Sprint
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        if (!isFocusSprint && sprintSelectedTasks.length > 0) {
+          openSprintEntry();
+        }
+        return;
+      }
+
+      // ? -> show shortcuts (not in inputs)
+      if (e.key === '?' && !isFocusSprint && !isPlanningMode) {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          setShowShortcuts(prev => !prev);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlanningMode, enterPlanningMode, exitPlanningMode]);
+  }, [isPlanningMode, isFocusSprint, enterPlanningMode, exitPlanningMode, openSprintEntry, sprintSelectedTasks]);
+
+  // Render Focus Sprint Mode (full screen)
+  if (isFocusSprint) {
+    return (
+      <>
+        <FocusSprintMode
+          currentTask={focusCurrentTask}
+          remainingTasks={focusRemainingTasks}
+          completedCount={completedCount}
+          totalCount={totalCount}
+          timerEnabled={timerEnabled}
+          timerDuration={timerDuration}
+          timerRemaining={timerRemaining}
+          timerPaused={timerPaused}
+          onComplete={completeCurrentTask}
+          onEnd={endSprint}
+          onToggleTimer={toggleTimer}
+          onSetTimerDuration={setTimerDuration}
+          onPauseTimer={pauseTimer}
+          onResumeTimer={resumeTimer}
+          onHideTimer={hideTimer}
+        />
+        <FocusExitSummary summary={exitSummary} onDismiss={dismissSummary} />
+      </>
+    );
+  }
 
   // Render Planning Mode
   if (isPlanningMode) {
@@ -58,7 +158,12 @@ export default function TaskLayout() {
   return (
     <div className="flex h-screen w-full flex-col bg-bg-main">
       {/* Lightweight Top Bar */}
-      <TopBar onAddClick={openAddTask} onPlanClick={enterPlanningMode} />
+      <TopBar 
+        onAddClick={openAddTask} 
+        onPlanClick={enterPlanningMode}
+        onSprintClick={openSprintEntry}
+        sprintTaskCount={sprintSelectedTasks.length}
+      />
 
       {/* Main Content Area - Task List dominates */}
       <div className="flex flex-1 overflow-hidden">
@@ -99,6 +204,20 @@ export default function TaskLayout() {
           onDelete={deleteTask}
         />
       </div>
+
+      {/* Sprint Entry Dialog */}
+      {showSprintEntry && (
+        <FocusSprintEntry
+          selectedTasks={sprintSelectedTasks}
+          onRemoveTask={removeSprintTask}
+          onStart={handleStartSprint}
+          onCancel={closeSprintEntry}
+          validationError={sprintValidationError}
+        />
+      )}
+
+      {/* Exit Summary (after sprint ends) */}
+      <FocusExitSummary summary={exitSummary} onDismiss={dismissSummary} />
 
       {/* Keyboard Shortcuts Modal */}
       <KeyboardShortcutsModal 
