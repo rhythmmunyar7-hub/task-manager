@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useRef, useEffect } from 'react';
 import { Task } from '@/types/task';
-
+import { getDateStatus } from '@/lib/date-utils';
 interface UseFocusTaskOptions {
   overdueTasks: Task[];
   todayTasks: Task[];
@@ -67,11 +67,11 @@ export function useFocusTask({
     (excludeId?: string): Task | null => {
       const candidates = allIncompleteTasks.filter((t) => t.id !== excludeId);
       
-      // Same priority order
-      const overdue = candidates.filter((t) => t.dueDate === 'overdue');
+      // Same priority order using date-utils
+      const overdue = candidates.filter((t) => getDateStatus(t.dueDate) === 'overdue');
       if (overdue.length > 0) return overdue[0];
 
-      const today = candidates.filter((t) => t.dueDate === 'today');
+      const today = candidates.filter((t) => getDateStatus(t.dueDate) === 'today');
       if (today.length > 0) {
         const sorted = [...today].sort(
           (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -91,10 +91,11 @@ export function useFocusTask({
   const getSuggestedNextTask = useCallback(
     (currentTask: Task): Task | null => {
       let sectionTasks: Task[] = [];
+      const currentStatus = getDateStatus(currentTask.dueDate);
 
-      if (currentTask.dueDate === 'overdue') {
+      if (currentStatus === 'overdue') {
         sectionTasks = overdueTasks;
-      } else if (currentTask.dueDate === 'today') {
+      } else if (currentStatus === 'today') {
         sectionTasks = todayTasks;
       } else if (!currentTask.dueDate) {
         sectionTasks = inboxTasks;

@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Task, Project, TaskPriority } from '@/types/task';
+import { getTodayISO, getDateStatus } from '@/lib/date-utils';
+import { addDays, format, startOfDay } from 'date-fns';
 
 // Mock projects
 const mockProjects: Project[] = [
@@ -10,7 +12,15 @@ const mockProjects: Project[] = [
   { id: 'health', name: 'Health', color: 'green' },
 ];
 
-// Mock tasks with priority
+// Helper to create dates relative to today
+const today = startOfDay(new Date());
+const todayISO = format(today, 'yyyy-MM-dd');
+const yesterdayISO = format(addDays(today, -1), 'yyyy-MM-dd');
+const twoDaysAgoISO = format(addDays(today, -2), 'yyyy-MM-dd');
+const tomorrowISO = format(addDays(today, 1), 'yyyy-MM-dd');
+const nextWeekISO = format(addDays(today, 7), 'yyyy-MM-dd');
+
+// Mock tasks with proper ISO dates
 const initialTasks: Task[] = [
   {
     id: '1',
@@ -18,7 +28,7 @@ const initialTasks: Task[] = [
     completed: false,
     priority: 'p1',
     project: mockProjects[0],
-    dueDate: 'today',
+    dueDate: todayISO,
     createdAt: new Date().toISOString(),
   },
   {
@@ -27,7 +37,7 @@ const initialTasks: Task[] = [
     completed: false,
     priority: 'p2',
     project: mockProjects[1],
-    dueDate: '2026-01-22',
+    dueDate: nextWeekISO,
     createdAt: new Date().toISOString(),
   },
   {
@@ -35,7 +45,7 @@ const initialTasks: Task[] = [
     title: 'Call dentist for appointment',
     completed: false,
     priority: 'p1',
-    dueDate: 'overdue',
+    dueDate: twoDaysAgoISO, // Overdue
     createdAt: new Date().toISOString(),
   },
   {
@@ -60,6 +70,7 @@ const initialTasks: Task[] = [
     completed: false,
     priority: 'p2',
     project: mockProjects[0],
+    dueDate: tomorrowISO,
     createdAt: new Date().toISOString(),
   },
   {
@@ -68,7 +79,7 @@ const initialTasks: Task[] = [
     completed: false,
     priority: 'none',
     project: mockProjects[1],
-    dueDate: 'today',
+    dueDate: todayISO,
     createdAt: new Date().toISOString(),
   },
 ];
@@ -204,8 +215,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     setIsAddTaskOpen(false);
   }, []);
 
+  // Use date-utils for proper status detection
   const getTodayTasks = useCallback(() => {
-    return tasks.filter((task) => task.dueDate === 'today' && !task.completed);
+    return tasks.filter((task) => !task.completed && getDateStatus(task.dueDate) === 'today');
   }, [tasks]);
 
   const getInboxTasks = useCallback(() => {
@@ -217,17 +229,15 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   }, [tasks]);
 
   const getUpcomingTasks = useCallback(() => {
-    return tasks.filter(
-      (task) =>
-        !task.completed &&
-        task.dueDate &&
-        task.dueDate !== 'today' &&
-        task.dueDate !== 'overdue'
-    );
+    return tasks.filter((task) => {
+      if (task.completed || !task.dueDate) return false;
+      const status = getDateStatus(task.dueDate);
+      return status === 'tomorrow' || status === 'upcoming' || status === 'future';
+    });
   }, [tasks]);
 
   const getOverdueTasks = useCallback(() => {
-    return tasks.filter((task) => !task.completed && task.dueDate === 'overdue');
+    return tasks.filter((task) => !task.completed && getDateStatus(task.dueDate) === 'overdue');
   }, [tasks]);
 
   const getIncompleteTasks = useCallback(() => {
