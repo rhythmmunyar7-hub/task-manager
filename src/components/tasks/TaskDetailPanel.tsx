@@ -5,7 +5,7 @@ import { X, Trash2 } from 'lucide-react';
 import { Task, Project, Subtask, TaskPriority } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { SubtasksList } from './SubtasksList';
-
+import { DatePicker } from './DatePicker';
 interface TaskDetailPanelProps {
   task: Task | null;
   projects: Project[];
@@ -92,10 +92,6 @@ export function TaskDetailPanel({
     onUpdate(task.id, { dueDate: value || undefined });
   };
 
-  const handleQuickDate = (value: string) => {
-    if (!task) return;
-    onUpdate(task.id, { dueDate: value });
-  };
 
   const handleDelete = () => {
     if (task) {
@@ -218,59 +214,14 @@ export function TaskDetailPanel({
 
             {/* Due Date */}
             <div>
-              <label htmlFor="due-date" className="mb-2 block text-[13px] text-text-muted">
+              <label className="mb-2 block text-[13px] text-text-muted">
                 Due Date
               </label>
-              <input
-                id="due-date"
-                type="date"
-                value={
-                  task.dueDate && task.dueDate !== 'today' && task.dueDate !== 'overdue'
-                    ? task.dueDate
-                    : ''
-                }
-                onChange={(e) => handleDueDateChange(e.target.value)}
-                className={cn(
-                  'w-full h-10 rounded-md px-3 text-[15px]',
-                  'bg-bg-input border border-capella-border-subtle',
-                  'text-text-primary',
-                  'focus:border-capella-primary focus:outline-none focus:ring-2 focus:ring-capella-primary/20',
-                  'mb-2'
-                )}
+              <DatePicker
+                value={task.dueDate}
+                onChange={(value) => handleDueDateChange(value || '')}
+                className="w-full"
               />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleQuickDate('today')}
-                  className={cn(
-                    'h-8 rounded-md px-3 text-xs font-medium transition-colors',
-                    task.dueDate === 'today'
-                      ? 'bg-capella-primary text-white'
-                      : 'bg-bg-elevated text-text-secondary hover:bg-bg-subtle'
-                  )}
-                >
-                  Today
-                </button>
-                <button
-                  onClick={() => {
-                    const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    handleDueDateChange(tomorrow.toISOString().split('T')[0]);
-                  }}
-                  className="h-8 rounded-md px-3 text-xs font-medium bg-bg-elevated text-text-secondary hover:bg-bg-subtle transition-colors"
-                >
-                  Tomorrow
-                </button>
-                <button
-                  onClick={() => {
-                    const nextWeek = new Date();
-                    nextWeek.setDate(nextWeek.getDate() + 7);
-                    handleDueDateChange(nextWeek.toISOString().split('T')[0]);
-                  }}
-                  className="h-8 rounded-md px-3 text-xs font-medium bg-bg-elevated text-text-secondary hover:bg-bg-subtle transition-colors"
-                >
-                  Next Week
-                </button>
-              </div>
             </div>
 
             {/* Priority */}

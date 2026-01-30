@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check } from 'lucide-react';
+import { Check, AlertCircle } from 'lucide-react';
 import { Task } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { useTaskContext } from '@/context/TaskContext';
+import { getDateStatus, getDateDisplayText, DateStatus } from '@/lib/date-utils';
 
 interface TaskRowProps {
   task: Task;
@@ -14,6 +15,16 @@ interface TaskRowProps {
   isKeyboardSelected?: boolean;
   isFocus?: boolean;
 }
+
+// Date status to color mapping - using design system tokens
+const dateStatusStyles: Record<DateStatus, string> = {
+  overdue: 'text-capella-danger',
+  today: 'text-capella-warning',
+  tomorrow: 'text-text-secondary',
+  upcoming: 'text-text-muted',
+  future: 'text-text-muted',
+  none: 'text-text-muted',
+};
 
 export function TaskRow({ 
   task, 
@@ -53,19 +64,22 @@ export function TaskRow({
 
   const isNewTask = isRecentlyAdded(task.id);
   const isCompleted = task.completed || isCompleting;
+  
+  // Date display logic
+  const dateStatus = getDateStatus(task.dueDate);
+  const dateDisplay = getDateDisplayText(task.dueDate);
+  const showUrgencyIcon = dateStatus === 'overdue';
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        // Base styles - clean, calm
+        // Base styles - FIXED HEIGHT for stability (no layout shift)
         'group relative flex cursor-pointer items-center gap-4 rounded-lg transition-all duration-200',
+        'h-14 px-4', // Consistent 56px height always
         
-        // Height based on focus state
-        isFocus ? 'h-[72px] px-5' : 'h-14 px-4',
-        
-        // Focus task gets subtle emphasis
-        isFocus && 'bg-white/[0.02] border-l-2 border-l-capella-primary/60',
+        // Focus task gets subtle emphasis (NO height change)
+        isFocus && 'bg-white/[0.03] border-l-2 border-l-capella-primary/60 shadow-sm',
         
         // Standard hover
         !isFocus && 'hover:bg-white/[0.03]',
@@ -73,11 +87,11 @@ export function TaskRow({
         // Selected state (click)
         isSelected && 'bg-white/[0.05]',
         
-        // Keyboard navigation selection - visible ring only when keyboard active
+        // Keyboard navigation selection
         isKeyboardSelected && 'ring-1 ring-capella-primary/50 ring-offset-1 ring-offset-bg-main bg-white/[0.03]',
         
-        // Completed tasks visually compress
-        isCompleted && !isFocus && 'h-11 opacity-50',
+        // Completed tasks visually recede but keep height stable
+        isCompleted && 'opacity-50',
         
         // Exit animation
         shouldExit && 'task-row-exit',
@@ -86,19 +100,15 @@ export function TaskRow({
         isNewTask && 'task-row-enter'
       )}
     >
-      {/* Premium Checkbox - 22x22px for focus, 18x18px standard */}
+      {/* Checkbox - 20x20px consistent */}
       <button
         onClick={handleCheckboxClick}
         aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
         className={cn(
           'relative flex shrink-0 items-center justify-center rounded-full',
-          'border-[1.5px] transition-all duration-200',
+          'h-5 w-5 border-[1.5px] transition-all duration-200',
           'focus:outline-none focus:ring-2 focus:ring-capella-primary/30 focus:ring-offset-2 focus:ring-offset-bg-main',
           
-          // Size
-          isFocus ? 'h-6 w-6' : 'h-5 w-5',
-          
-          // States
           isCompleted
             ? 'border-capella-success bg-capella-success'
             : 'border-text-muted/40 bg-transparent hover:border-text-muted/60'
@@ -106,24 +116,20 @@ export function TaskRow({
       >
         {isCompleted && (
           <Check 
-            className={cn(
-              'text-black animate-check-fill',
-              isFocus ? 'h-3.5 w-3.5' : 'h-3 w-3'
-            )} 
+            className="h-3 w-3 text-black animate-check-fill"
             strokeWidth={3}
           />
         )}
       </button>
 
-      {/* Task Title - Hero element */}
+      {/* Task Title - Primary element with flex-1 */}
       <span
         className={cn(
           'flex-1 truncate transition-all duration-200',
+          'text-[15px]',
           
-          // Typography based on focus state
-          isFocus 
-            ? 'text-[17px] font-medium text-text-primary leading-relaxed'
-            : 'text-[15px] text-text-primary/90',
+          // Focus task gets subtle weight boost
+          isFocus ? 'font-medium text-text-primary' : 'text-text-primary/90',
           
           // Completed styling
           isCompleted && 'text-text-muted line-through'
@@ -131,6 +137,22 @@ export function TaskRow({
       >
         {task.title}
       </span>
+
+      {/* Due Date Signal - Always visible when set, scannable */}
+      {dateDisplay && !isCompleted && (
+        <div 
+          className={cn(
+            'flex items-center gap-1.5 shrink-0',
+            'text-[13px] font-medium',
+            dateStatusStyles[dateStatus]
+          )}
+        >
+          {showUrgencyIcon && (
+            <AlertCircle className="h-3.5 w-3.5" strokeWidth={2} />
+          )}
+          <span>{dateDisplay}</span>
+        </div>
+      )}
     </div>
   );
 }
