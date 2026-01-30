@@ -1,14 +1,17 @@
 'use client';
 
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, LayoutGrid, Zap } from 'lucide-react';
+import { Plus, LayoutGrid, Zap, Inbox } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TopBarProps {
   onAddClick: () => void;
   onPlanClick: () => void;
   onSprintClick: () => void;
+  onTriageClick: () => void;
   sprintTaskCount: number;
+  triageCount: number;
+  canTriage: boolean;
 }
 
 const navItems = [
@@ -17,7 +20,15 @@ const navItems = [
   { path: '/tasks/all', label: 'All' },
 ];
 
-export function TopBar({ onAddClick, onPlanClick, onSprintClick, sprintTaskCount }: TopBarProps) {
+export function TopBar({ 
+  onAddClick, 
+  onPlanClick, 
+  onSprintClick, 
+  onTriageClick,
+  sprintTaskCount, 
+  triageCount,
+  canTriage,
+}: TopBarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -46,6 +57,24 @@ export function TopBar({ onAddClick, onPlanClick, onSprintClick, sprintTaskCount
 
       {/* Right: Actions */}
       <div className="flex items-center gap-1">
+        {/* Triage Button - shows when there are triageable tasks */}
+        {canTriage && triageCount > 0 && (
+          <button
+            onClick={onTriageClick}
+            className={cn(
+              'flex items-center gap-2 h-8 px-3 rounded-md text-[13px] font-medium',
+              'text-text-muted hover:text-text-primary',
+              'transition-colors duration-150 hover:bg-white/[0.04]'
+            )}
+            aria-label="Start triage"
+            title="Triage Later Tasks (⌘⇧T)"
+          >
+            <Inbox className="h-4 w-4" strokeWidth={1.5} />
+            <span className="hidden sm:inline">Triage</span>
+            <span className="text-[11px] opacity-60">{triageCount}</span>
+          </button>
+        )}
+
         {/* Focus Sprint Button - shows when tasks are selected */}
         {sprintTaskCount > 0 && (
           <button

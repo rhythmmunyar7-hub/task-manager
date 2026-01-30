@@ -219,4 +219,50 @@
       opacity: 1;
     }
   }
+
+  /* Triage mode exit animations */
+  .triage-exit-right {
+    animation: triage-exit-right 0.25s ease-out forwards;
+  }
+
+  .triage-exit-left {
+    animation: triage-exit-left 0.25s ease-out forwards;
+  }
+
+  .triage-exit-down {
+    animation: triage-exit-down 0.25s ease-out forwards;
+  }
+
+  @keyframes triage-exit-right {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes triage-exit-left {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(-100px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes triage-exit-down {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(50px);
+      opacity: 0;
+    }
+  }
 }

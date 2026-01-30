@@ -44,6 +44,7 @@ const shortcutSections: ShortcutSection[] = [
     title: 'Focus & Planning',
     shortcuts: [
       { keys: ['⌘', '⇧', 'F'], description: 'Start Focus Sprint' },
+      { keys: ['⌘', '⇧', 'T'], description: 'Start Backlog Triage' },
       { keys: ['⌘', 'P'], description: 'Open Planning Mode' },
       { keys: ['Esc'], description: 'Exit mode' },
     ],

@@ -7,8 +7,10 @@ import { KeyboardShortcutsModal } from '@/components/tasks/KeyboardShortcutsModa
 import { TaskDetailPanel } from '@/components/tasks/TaskDetailPanel';
 import { PlanningMode } from '@/components/planning/PlanningMode';
 import { FocusSprintMode, FocusSprintEntry, FocusExitSummary } from '@/components/focus';
+import { TriageMode, TriageExitMessage } from '@/components/triage';
 import { useTaskContext } from '@/context/TaskContext';
 import { useFocusSprint } from '@/hooks/useFocusSprint';
+import { useTriageMode } from '@/hooks/useTriageMode';
 import { cn } from '@/lib/utils';
 
 export default function TaskLayout() {
@@ -41,7 +43,6 @@ export default function TaskLayout() {
     timerRemaining,
     timerPaused,
     exitSummary,
-    canStartSprint,
     startSprint,
     endSprint,
     completeCurrentTask,
@@ -52,6 +53,25 @@ export default function TaskLayout() {
     hideTimer,
     dismissSummary,
   } = useFocusSprint();
+
+  // Triage Mode hook
+  const {
+    isActive: isTriageMode,
+    currentTask: triageCurrentTask,
+    helperText: triageHelperText,
+    suggestedDestination,
+    reviewedCount,
+    totalTasks: triageTotalTasks,
+    canTriage,
+    triageableCount,
+    showExitMessage: showTriageExit,
+    startTriage,
+    keepTask,
+    laterTask,
+    archiveTask,
+    endTriage,
+    dismissExitMessage: dismissTriageExit,
+  } = useTriageMode();
 
   // Enter planning mode
   const enterPlanningMode = useCallback(() => {
@@ -90,6 +110,9 @@ export default function TaskLayout() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if in a special mode
+      if (isTriageMode || isFocusSprint) return;
+
       // Cmd/Ctrl + P -> planning mode
       if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
         e.preventDefault();
@@ -104,14 +127,23 @@ export default function TaskLayout() {
       // Cmd/Ctrl + Shift + F -> Focus Sprint
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
-        if (!isFocusSprint && sprintSelectedTasks.length > 0) {
+        if (sprintSelectedTasks.length > 0) {
           openSprintEntry();
         }
         return;
       }
 
+      // Cmd/Ctrl + Shift + T -> Triage Mode
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        if (canTriage) {
+          startTriage();
+        }
+        return;
+      }
+
       // ? -> show shortcuts (not in inputs)
-      if (e.key === '?' && !isFocusSprint && !isPlanningMode) {
+      if (e.key === '?' && !isPlanningMode) {
         const target = e.target as HTMLElement;
         if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
           e.preventDefault();
@@ -122,7 +154,31 @@ export default function TaskLayout() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlanningMode, isFocusSprint, enterPlanningMode, exitPlanningMode, openSprintEntry, sprintSelectedTasks]);
+  }, [isPlanningMode, isFocusSprint, isTriageMode, canTriage, enterPlanningMode, exitPlanningMode, openSprintEntry, sprintSelectedTasks, startTriage]);
+
+  // Render Triage Mode (full screen)
+  if (isTriageMode) {
+    return (
+      <>
+        <TriageMode
+          currentTask={triageCurrentTask}
+          helperText={triageHelperText}
+          suggestedDestination={suggestedDestination}
+          reviewedCount={reviewedCount}
+          totalTasks={triageTotalTasks}
+          onKeep={keepTask}
+          onLater={laterTask}
+          onArchive={archiveTask}
+          onEnd={endTriage}
+        />
+        <TriageExitMessage
+          show={showTriageExit}
+          reviewedCount={reviewedCount}
+          onDismiss={dismissTriageExit}
+        />
+      </>
+    );
+  }
 
   // Render Focus Sprint Mode (full screen)
   if (isFocusSprint) {
@@ -162,7 +218,10 @@ export default function TaskLayout() {
         onAddClick={openAddTask} 
         onPlanClick={enterPlanningMode}
         onSprintClick={openSprintEntry}
+        onTriageClick={startTriage}
         sprintTaskCount={sprintSelectedTasks.length}
+        triageCount={triageableCount}
+        canTriage={canTriage}
       />
 
       {/* Main Content Area - Task List dominates */}
@@ -218,6 +277,13 @@ export default function TaskLayout() {
 
       {/* Exit Summary (after sprint ends) */}
       <FocusExitSummary summary={exitSummary} onDismiss={dismissSummary} />
+
+      {/* Triage Exit Message */}
+      <TriageExitMessage
+        show={showTriageExit}
+        reviewedCount={reviewedCount}
+        onDismiss={dismissTriageExit}
+      />
 
       {/* Keyboard Shortcuts Modal */}
       <KeyboardShortcutsModal 
