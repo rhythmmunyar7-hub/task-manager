@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Outlet } from 'react-router-dom';
 import { TopBar } from '@/components/tasks/TopBar';
 import { KeyboardShortcutsModal } from '@/components/tasks/KeyboardShortcutsModal';
 import { TaskDetailPanel } from '@/components/tasks/TaskDetailPanel';
+import { PlanningMode } from '@/components/planning/PlanningMode';
 import { useTaskContext } from '@/context/TaskContext';
 import { cn } from '@/lib/utils';
 
@@ -19,11 +20,45 @@ export default function TaskLayout() {
   } = useTaskContext();
   
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [isPlanningMode, setIsPlanningMode] = useState(false);
+
+  // Enter planning mode
+  const enterPlanningMode = useCallback(() => {
+    setIsPlanningMode(true);
+    selectTask(null); // Clear selection when entering planning
+  }, [selectTask]);
+
+  // Exit planning mode
+  const exitPlanningMode = useCallback(() => {
+    setIsPlanningMode(false);
+  }, []);
+
+  // Keyboard shortcut for planning mode (Cmd/Ctrl + P)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+        e.preventDefault();
+        if (isPlanningMode) {
+          exitPlanningMode();
+        } else {
+          enterPlanningMode();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlanningMode, enterPlanningMode, exitPlanningMode]);
+
+  // Render Planning Mode
+  if (isPlanningMode) {
+    return <PlanningMode onExit={exitPlanningMode} />;
+  }
 
   return (
     <div className="flex h-screen w-full flex-col bg-bg-main">
       {/* Lightweight Top Bar */}
-      <TopBar onAddClick={openAddTask} />
+      <TopBar onAddClick={openAddTask} onPlanClick={enterPlanningMode} />
 
       {/* Main Content Area - Task List dominates */}
       <div className="flex flex-1 overflow-hidden">

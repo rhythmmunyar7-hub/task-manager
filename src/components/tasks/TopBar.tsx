@@ -1,11 +1,12 @@
 'use client';
 
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TopBarProps {
   onAddClick: () => void;
+  onPlanClick: () => void;
 }
 
 const navItems = [
@@ -14,7 +15,7 @@ const navItems = [
   { path: '/tasks/all', label: 'All' },
 ];
 
-export function TopBar({ onAddClick }: TopBarProps) {
+export function TopBar({ onAddClick, onPlanClick }: TopBarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -41,19 +42,37 @@ export function TopBar({ onAddClick }: TopBarProps) {
         })}
       </nav>
 
-      {/* Right: Add Task - Always visible, calm */}
-      <button
-        onClick={onAddClick}
-        className={cn(
-          'flex items-center gap-2 h-8 px-3 rounded-md text-[13px] font-medium',
-          'text-text-muted hover:text-text-primary',
-          'transition-colors duration-150 hover:bg-white/[0.04]'
-        )}
-        aria-label="Add task"
-      >
-        <Plus className="h-4 w-4" strokeWidth={2} />
-        <span className="hidden sm:inline">Add Task</span>
-      </button>
+      {/* Right: Actions */}
+      <div className="flex items-center gap-1">
+        {/* Plan Button */}
+        <button
+          onClick={onPlanClick}
+          className={cn(
+            'flex items-center gap-2 h-8 px-3 rounded-md text-[13px] font-medium',
+            'text-text-muted hover:text-text-primary',
+            'transition-colors duration-150 hover:bg-white/[0.04]'
+          )}
+          aria-label="Open planning mode"
+          title="Plan (⌘P)"
+        >
+          <LayoutGrid className="h-4 w-4" strokeWidth={2} />
+          <span className="hidden sm:inline">Plan</span>
+        </button>
+
+        {/* Add Task */}
+        <button
+          onClick={onAddClick}
+          className={cn(
+            'flex items-center gap-2 h-8 px-3 rounded-md text-[13px] font-medium',
+            'text-text-muted hover:text-text-primary',
+            'transition-colors duration-150 hover:bg-white/[0.04]'
+          )}
+          aria-label="Add task"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2} />
+          <span className="hidden sm:inline">Add Task</span>
+        </button>
+      </div>
     </header>
   );
 }

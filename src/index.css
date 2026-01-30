@@ -183,4 +183,40 @@
       opacity: 1;
     }
   }
+
+  /* Planning mode card animations */
+  .planning-card-celebrate {
+    animation: celebrate-defer 0.4s ease-out;
+  }
+
+  @keyframes celebrate-defer {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(0.95);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* Slide in from right for planning detail */
+  .slide-in-right {
+    animation: slide-in-right 0.25s ease-out;
+  }
+
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
 }
