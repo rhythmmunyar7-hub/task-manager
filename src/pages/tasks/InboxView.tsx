@@ -12,6 +12,7 @@ import { OverwhelmBanner } from '@/components/tasks/OverwhelmBanner';
 import { useFocusTask } from '@/hooks/useFocusTask';
 import { useOverwhelmMode } from '@/hooks/useOverwhelmMode';
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
+import { sortTasksForExecution } from '@/lib/task-intelligence';
 
 export default function InboxView() {
   const {
@@ -49,14 +50,16 @@ export default function InboxView() {
     incompleteTasks,
   });
 
-  // Apply visibility limits
+  // Apply smart sorting and visibility limits
+  const sortedInboxTasks = useMemo(() => sortTasksForExecution(inboxTasks), [inboxTasks]);
+  
   const visibleTasks = useMemo(() => {
-    return inboxTasks.slice(0, visibleCount);
-  }, [inboxTasks, visibleCount]);
+    return sortedInboxTasks.slice(0, visibleCount);
+  }, [sortedInboxTasks, visibleCount]);
 
   const laterTasks = useMemo(() => {
-    return inboxTasks.slice(visibleCount);
-  }, [inboxTasks, visibleCount]);
+    return sortedInboxTasks.slice(visibleCount);
+  }, [sortedInboxTasks, visibleCount]);
 
   // Keyboard navigation
   const handleDismiss = useCallback(() => {

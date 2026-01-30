@@ -12,6 +12,7 @@ import { OverwhelmBanner } from '@/components/tasks/OverwhelmBanner';
 import { useFocusTask } from '@/hooks/useFocusTask';
 import { useOverwhelmMode } from '@/hooks/useOverwhelmMode';
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
+import { sortTasksForExecution } from '@/lib/task-intelligence';
 
 export default function TodayView() {
   const {
@@ -45,13 +46,14 @@ export default function TodayView() {
   });
 
   // Overwhelm detection
-  const { isOverwhelmed, visibleCount, hiddenCount, overwhelmMessage } = useOverwhelmMode({
+  const { isOverwhelmed, visibleCount, overwhelmMessage } = useOverwhelmMode({
     incompleteTasks,
   });
 
-  // Combine active tasks for this view (overdue + today)
+  // Combine and SORT active tasks for execution mode (silent prioritization)
   const activeTasks = useMemo(() => {
-    return [...overdueTasks, ...todayTasks];
+    const combined = [...overdueTasks, ...todayTasks];
+    return sortTasksForExecution(combined);
   }, [overdueTasks, todayTasks]);
 
   // Apply visibility limits
@@ -90,6 +92,17 @@ export default function TodayView() {
 
   const hasNoActiveTasks = activeTasks.length === 0;
 
+  // Determine section title based on content
+  const sectionTitle = useMemo(() => {
+    if (overdueTasks.length > 0 && todayTasks.length > 0) {
+      return 'Today'; // Combined view
+    }
+    if (overdueTasks.length > 0) {
+      return 'Overdue';
+    }
+    return 'Today';
+  }, [overdueTasks.length, todayTasks.length]);
+
   return (
     <div className="flex h-full flex-col">
       <main className="flex-1 overflow-y-auto px-8 py-8">
@@ -121,10 +134,10 @@ export default function TodayView() {
               </div>
             )}
 
-            {/* Active Tasks - Overdue first, then Today */}
+            {/* Active Tasks - Smart sorted for execution */}
             {visibleTasks.length > 0 && (
               <TaskSection
-                title={overdueTasks.length > 0 ? 'Overdue' : 'Today'}
+                title={sectionTitle}
                 tasks={visibleTasks}
                 onTaskClick={selectTask}
                 onTaskComplete={completeTask}
