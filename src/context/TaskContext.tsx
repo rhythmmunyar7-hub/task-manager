@@ -93,6 +93,7 @@ interface TaskContextType {
   showMomentumMessage: boolean;
   lastCompletedTaskId: string | null;
   suggestionDismissedThisSession: boolean;
+  sprintSelectedTasks: Task[];
   addTask: (title: string, priority?: TaskPriority, projectId?: string, dueDate?: string) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
@@ -103,6 +104,9 @@ interface TaskContextType {
   closeAddTask: () => void;
   dismissMomentumMessage: () => void;
   dismissSuggestion: () => void;
+  toggleSprintTask: (task: Task) => void;
+  clearSprintTasks: () => void;
+  removeSprintTask: (taskId: string) => void;
   getTodayTasks: () => Task[];
   getInboxTasks: () => Task[];
   getCompletedTasks: () => Task[];
@@ -110,6 +114,7 @@ interface TaskContextType {
   getOverdueTasks: () => Task[];
   getIncompleteTasks: () => Task[];
   isRecentlyAdded: (id: string) => boolean;
+  isSprintSelected: (id: string) => boolean;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -125,6 +130,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const [showMomentumMessage, setShowMomentumMessage] = useState(false);
   const [lastCompletedTaskId, setLastCompletedTaskId] = useState<string | null>(null);
   const [suggestionDismissedThisSession, setSuggestionDismissedThisSession] = useState(false);
+  
+  // Focus Sprint selection state
+  const [sprintSelectedTasks, setSprintSelectedTasks] = useState<Task[]>([]);
 
   const addTask = useCallback((
     title: string, 
@@ -207,6 +215,34 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     setShowMomentumMessage(false);
   }, []);
 
+  // Sprint task selection
+  const toggleSprintTask = useCallback((task: Task) => {
+    setSprintSelectedTasks(prev => {
+      const exists = prev.find(t => t.id === task.id);
+      if (exists) {
+        return prev.filter(t => t.id !== task.id);
+      }
+      // Max 3 tasks
+      if (prev.length >= 3) {
+        return prev;
+      }
+      return [...prev, task];
+    });
+  }, []);
+
+  const clearSprintTasks = useCallback(() => {
+    setSprintSelectedTasks([]);
+  }, []);
+
+  const removeSprintTask = useCallback((taskId: string) => {
+    setSprintSelectedTasks(prev => prev.filter(t => t.id !== taskId));
+  }, []);
+
+  const isSprintSelected = useCallback((id: string) => {
+    return sprintSelectedTasks.some(t => t.id === id);
+    setShowMomentumMessage(false);
+  }, []);
+
   const openAddTask = useCallback(() => {
     setIsAddTaskOpen(true);
   }, []);
@@ -255,6 +291,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         showMomentumMessage,
         lastCompletedTaskId,
         suggestionDismissedThisSession,
+        sprintSelectedTasks,
         addTask,
         updateTask,
         deleteTask,
@@ -265,6 +302,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         closeAddTask,
         dismissMomentumMessage,
         dismissSuggestion,
+        toggleSprintTask,
+        clearSprintTasks,
+        removeSprintTask,
         getTodayTasks,
         getInboxTasks,
         getCompletedTasks,
@@ -272,6 +312,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         getOverdueTasks,
         getIncompleteTasks,
         isRecentlyAdded,
+        isSprintSelected,
       }}
     >
       {children}

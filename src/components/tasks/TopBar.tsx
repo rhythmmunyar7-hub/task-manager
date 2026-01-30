@@ -1,12 +1,14 @@
 'use client';
 
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, LayoutGrid } from 'lucide-react';
+import { Plus, LayoutGrid, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TopBarProps {
   onAddClick: () => void;
   onPlanClick: () => void;
+  onSprintClick: () => void;
+  sprintTaskCount: number;
 }
 
 const navItems = [
@@ -15,7 +17,7 @@ const navItems = [
   { path: '/tasks/all', label: 'All' },
 ];
 
-export function TopBar({ onAddClick, onPlanClick }: TopBarProps) {
+export function TopBar({ onAddClick, onPlanClick, onSprintClick, sprintTaskCount }: TopBarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -44,6 +46,25 @@ export function TopBar({ onAddClick, onPlanClick }: TopBarProps) {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-1">
+        {/* Focus Sprint Button - shows when tasks are selected */}
+        {sprintTaskCount > 0 && (
+          <button
+            onClick={onSprintClick}
+            className={cn(
+              'flex items-center gap-2 h-8 px-3 rounded-md text-[13px] font-medium',
+              'bg-capella-primary/10 text-capella-primary',
+              'hover:bg-capella-primary/20',
+              'transition-colors duration-150'
+            )}
+            aria-label="Start focus sprint"
+            title="Start Focus Sprint (⌘⇧F)"
+          >
+            <Zap className="h-4 w-4" strokeWidth={2} />
+            <span className="hidden sm:inline">Sprint ({sprintTaskCount})</span>
+            <span className="sm:hidden">{sprintTaskCount}</span>
+          </button>
+        )}
+
         {/* Plan Button */}
         <button
           onClick={onPlanClick}

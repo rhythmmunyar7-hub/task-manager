@@ -4,10 +4,17 @@ import { Zap, Check, Settings } from 'lucide-react';
 import { EnergyType } from '@/types/task';
 import { cn } from '@/lib/utils';
 
-interface EnergyIconProps {
+export interface EnergyIconProps {
   type: EnergyType;
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
+
+const sizeClasses = {
+  sm: 'h-3 w-3',
+  md: 'h-3.5 w-3.5',
+  lg: 'h-5 w-5',
+};
 
 /**
  * Energy type indicator - icon only, neutral color
@@ -15,9 +22,10 @@ interface EnergyIconProps {
  * ✓ Quick Win - Check icon
  * ⚙ Admin - Settings icon
  */
-export function EnergyIcon({ type, className }: EnergyIconProps) {
+export function EnergyIcon({ type, className, size = 'md' }: EnergyIconProps) {
   const iconClass = cn(
-    'h-3.5 w-3.5 text-text-muted/50',
+    sizeClasses[size],
+    'text-text-muted/50',
     className
   );
 
