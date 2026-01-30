@@ -41,6 +41,13 @@ const shortcutSections: ShortcutSection[] = [
     ],
   },
   {
+    title: 'Planning',
+    shortcuts: [
+      { keys: ['⌘', 'P'], description: 'Open Planning Mode' },
+      { keys: ['Esc'], description: 'Exit Planning Mode' },
+    ],
+  },
+  {
     title: 'General',
     shortcuts: [
       { keys: ['?'], description: 'Show keyboard shortcuts' },
