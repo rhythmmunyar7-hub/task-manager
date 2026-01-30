@@ -3,15 +3,17 @@
 import { useMemo, useCallback } from 'react';
 import { useTaskContext } from '@/context/TaskContext';
 import { QuickAddTask } from '@/components/tasks/QuickAddTask';
-import { TaskSection } from '@/components/tasks/TaskSection';
 import { EmptyState } from '@/components/tasks/EmptyState';
 import { LaterSection } from '@/components/tasks/LaterSection';
 import { MomentumMessage } from '@/components/tasks/MomentumMessage';
 import { NextTaskSuggestion } from '@/components/tasks/NextTaskSuggestion';
 import { OverwhelmBanner } from '@/components/tasks/OverwhelmBanner';
+import { ContextGroupedList } from '@/components/tasks/ContextGroupedList';
+import { TaskSection } from '@/components/tasks/TaskSection';
 import { useFocusTask } from '@/hooks/useFocusTask';
 import { useOverwhelmMode } from '@/hooks/useOverwhelmMode';
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
+import { sortTasksForExecution } from '@/lib/task-intelligence';
 
 export default function AllTasksView() {
   const {
@@ -52,9 +54,10 @@ export default function AllTasksView() {
     incompleteTasks,
   });
 
-  // Combine all active tasks in priority order
+  // Combine all active tasks and SORT for execution mode
   const allActiveTasks = useMemo(() => {
-    return [...overdueTasks, ...todayTasks, ...upcomingTasks, ...inboxTasks];
+    const combined = [...overdueTasks, ...todayTasks, ...upcomingTasks, ...inboxTasks];
+    return sortTasksForExecution(combined);
   }, [overdueTasks, todayTasks, upcomingTasks, inboxTasks]);
 
   // Apply visibility limits
@@ -92,6 +95,7 @@ export default function AllTasksView() {
   }, [selectTask, dismissMomentumMessage]);
 
   const hasNoTasks = tasks.length === 0;
+  const showContextGrouping = visibleTasks.length > 6; // Only group when there are enough tasks
 
   return (
     <div className="flex h-full flex-col">
@@ -124,18 +128,34 @@ export default function AllTasksView() {
               </div>
             )}
 
-            {/* All Tasks - Priority order with visibility limit */}
+            {/* All Tasks - Context grouped when enough tasks, otherwise flat */}
             {visibleTasks.length > 0 && (
-              <TaskSection
-                title="Tasks"
-                tasks={visibleTasks}
-                onTaskClick={selectTask}
-                onTaskComplete={completeTask}
-                selectedTaskId={selectedTask?.id}
-                keyboardSelectedId={isKeyboardActive ? keyboardSelectedId : null}
-                focusTaskId={focusTask?.id}
-                variant="primary"
-              />
+              <section className="mb-8">
+                <h2 className="mb-3 text-[14px] font-medium tracking-wide text-text-secondary">
+                  Tasks
+                </h2>
+                {showContextGrouping ? (
+                  <ContextGroupedList
+                    tasks={visibleTasks}
+                    onTaskClick={selectTask}
+                    onTaskComplete={completeTask}
+                    selectedTaskId={selectedTask?.id}
+                    keyboardSelectedId={isKeyboardActive ? keyboardSelectedId : null}
+                    focusTaskId={focusTask?.id}
+                  />
+                ) : (
+                  <TaskSection
+                    title=""
+                    tasks={visibleTasks}
+                    onTaskClick={selectTask}
+                    onTaskComplete={completeTask}
+                    selectedTaskId={selectedTask?.id}
+                    keyboardSelectedId={isKeyboardActive ? keyboardSelectedId : null}
+                    focusTaskId={focusTask?.id}
+                    variant="primary"
+                  />
+                )}
+              </section>
             )}
 
             {/* Later Section */}

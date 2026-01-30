@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Trash2 } from 'lucide-react';
-import { Task, Project, Subtask, TaskPriority } from '@/types/task';
+import { X, Trash2, Zap, Check, Settings } from 'lucide-react';
+import { Task, Project, Subtask, TaskPriority, EnergyType } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { SubtasksList } from './SubtasksList';
 import { DatePicker } from './DatePicker';
+import { classifyEnergyType, getEnergyLabel } from '@/lib/task-intelligence';
+
 interface TaskDetailPanelProps {
   task: Task | null;
   projects: Project[];
@@ -85,6 +87,11 @@ export function TaskDetailPanel({
   const handlePriorityChange = (priority: TaskPriority) => {
     if (!task) return;
     onUpdate(task.id, { priority });
+  };
+
+  const handleEnergyTypeChange = (energyType: EnergyType) => {
+    if (!task) return;
+    onUpdate(task.id, { energyType });
   };
 
   const handleDueDateChange = (value: string) => {
@@ -248,6 +255,36 @@ export function TaskDetailPanel({
                     {p === 'none' ? 'None' : p.toUpperCase()}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Energy Type - Override auto-classification */}
+            <div>
+              <label className="mb-2 block text-[13px] text-text-muted">
+                Energy Type
+              </label>
+              <div className="flex gap-2">
+                {(['deep', 'quick', 'admin'] as EnergyType[]).map((e) => {
+                  const currentEnergy = task.energyType || classifyEnergyType(task.title);
+                  const isActive = currentEnergy === e;
+                  const Icon = e === 'deep' ? Zap : e === 'quick' ? Check : Settings;
+                  
+                  return (
+                    <button
+                      key={e}
+                      onClick={() => handleEnergyTypeChange(e)}
+                      className={cn(
+                        'h-9 flex-1 flex items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-bg-subtle text-text-primary border border-capella-border'
+                          : 'bg-bg-elevated text-text-secondary hover:bg-bg-subtle'
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      <span className="text-[12px]">{getEnergyLabel(e)}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

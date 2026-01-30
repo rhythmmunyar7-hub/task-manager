@@ -20,7 +20,7 @@ interface UseKeyboardNavigationReturn {
  * Full keyboard navigation for task execution:
  * - J/K: Move selection up/down
  * - Enter: Open task detail
- * - Space: Complete task
+ * - Space or X: Complete task
  * - Escape: Dismiss/collapse
  */
 export function useKeyboardNavigation({
@@ -88,7 +88,8 @@ export function useKeyboardNavigation({
           break;
 
         case ' ':
-          // Complete task
+        case 'x':
+          // Complete task (Space or X)
           e.preventDefault();
           if (tasks[selectedIndex] && isKeyboardActive) {
             onTaskComplete(tasks[selectedIndex].id);
